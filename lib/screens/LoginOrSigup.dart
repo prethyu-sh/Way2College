@@ -1,7 +1,6 @@
-import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:flutter/material.dart';
 import 'UserLogin.dart';
-import 'SignUpFirstInterface.dart';
+import 'UserRegister.dart';
 
 class LoginOrSigup extends StatefulWidget {
   const LoginOrSigup({super.key});
@@ -25,47 +24,59 @@ class LoginOrSigupState extends State<LoginOrSigup> {
                   padding: const EdgeInsets.all(18),
                   child: Column(
                     children: [
-                      const SizedBox(height: 40),
-
-                      // LOGIN BUTTON
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const UserLogin()),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 80, vertical: 30),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Colors.white,
-                          ),
-                          child: const Text(
-                            "LOGIN",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(46),
+                          color: const Color(0xFF154C77),
                         ),
-                      ),
+                        padding: const EdgeInsets.all(30),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 200),
 
-                      const SizedBox(height: 40),
+                            // LOGIN BUTTON
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const UserLogin()),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 80, vertical: 32),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(41),
+                                  color: Colors.white,
+                                ),
+                                child: const Text(
+                                  "LOGIN",
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
 
-                      // SIGN UP TEXT
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const SignUpFirstInterface()),
-                          );
-                        },
-                        child: const Text(
-                          "New user? Sign up",
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                            const SizedBox(height: 20),
+
+                            // SIGN UP
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const UserRegister()),
+                                );
+                              },
+                              child: const Text(
+                                "New user? sign in",
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

@@ -48,7 +48,7 @@ class UserLoginState extends State<UserLogin> {
 																									width: 150,
 																									height: 150,
 																									child: Image.network(
-																										"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/grecp1b1_expires_30_days.png",
+																										"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/9rozrmpn_expires_30_days.png",
 																										fit: BoxFit.fill,
 																									)
 																								),
@@ -64,7 +64,7 @@ class UserLoginState extends State<UserLogin> {
 																								width: 60,
 																								height: 60,
 																								child: Image.network(
-																									"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/b3gq0lvi_expires_30_days.png",
+																									"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/s5e7ch3q_expires_30_days.png",
 																									fit: BoxFit.fill,
 																								)
 																							),
@@ -98,7 +98,7 @@ class UserLoginState extends State<UserLogin> {
 																																width: 60,
 																																height: 60,
 																																child: Image.network(
-																																	"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/c6eky4cv_expires_30_days.png",
+																																	"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/3iidq9xk_expires_30_days.png",
 																																	fit: BoxFit.fill,
 																																)
 																															),
@@ -106,7 +106,7 @@ class UserLoginState extends State<UserLogin> {
 																																width: 60,
 																																height: 60,
 																																child: Image.network(
-																																	"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/8kvq80aw_expires_30_days.png",
+																																	"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/oeus857l_expires_30_days.png",
 																																	fit: BoxFit.fill,
 																																)
 																															),
@@ -120,7 +120,7 @@ class UserLoginState extends State<UserLogin> {
 																												height: 150,
 																												width: double.infinity,
 																												child: Image.network(
-																													"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/tlshliih_expires_30_days.png",
+																													"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/g30648dp_expires_30_days.png",
 																													fit: BoxFit.fill,
 																												)
 																											),
@@ -133,7 +133,7 @@ class UserLoginState extends State<UserLogin> {
 																							width: 60,
 																							height: 60,
 																							child: Image.network(
-																								"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/1wrzmtu9_expires_30_days.png",
+																								"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/wu5dwbzq_expires_30_days.png",
 																								fit: BoxFit.fill,
 																							)
 																						),
@@ -150,7 +150,7 @@ class UserLoginState extends State<UserLogin> {
 														child: Container(
 															decoration: BoxDecoration(
 																borderRadius: BorderRadius.circular(46),
-																color: Color(0xFF32767F),
+																color: Color(0xFF154C77),
 															),
 															margin: const EdgeInsets.symmetric(horizontal: 22),
 															width: double.infinity,
@@ -198,123 +198,15 @@ class UserLoginState extends State<UserLogin> {
 																					color: Color(0xFF000000),
 																					fontSize: 16,
 																				),
-																				onChanged: (value) { 
-																					setState(() { textField2 = value; });
-																				},
-																				decoration: InputDecoration(
-																					hintText: "Password",
-																					isDense: true,
-																					contentPadding: const EdgeInsets.only( top: 7, bottom: 7, left: 21, right: 21),
-																					border: InputBorder.none,
-																					focusedBorder: InputBorder.none,
-																					filled: false,
-																				),
-																			),
-																		),
-																	),
-																	InkWell(
-																		onTap: () { print('Pressed'); },
-																		child: IntrinsicWidth(
-																			child: IntrinsicHeight(
-																				child: Container(
-																					decoration: BoxDecoration(
-																						borderRadius: BorderRadius.circular(31),
-																						color: Color(0xFFFFFFFF),
-																					),
-																					padding: const EdgeInsets.only( top: 16, bottom: 16, left: 67, right: 67),
-																					margin: const EdgeInsets.only( bottom: 74),
-																					child: Column(
-																						crossAxisAlignment: CrossAxisAlignment.start,
-																						children: [
-																							Text(
-																								"Login",
-																								style: TextStyle(
-																									color: Color(0xFF000000),
-																									fontSize: 20,
-																								),
-																							),
-																						]
-																					),
-																				),
-																			),
+                                        																			),
 																		),
 																	),
 																]
 															),
 														),
 													),
-													IntrinsicWidth(
-														child: IntrinsicHeight(
-															child: Container(
-																margin: const EdgeInsets.only( bottom: 6),
-																child: Row(
-																	crossAxisAlignment: CrossAxisAlignment.start,
-																	children: [
-																		IntrinsicWidth(
-																			child: IntrinsicHeight(
-																				child: Container(
-																					margin: const EdgeInsets.only( right: 70),
-																					child: Stack(
-																						clipBehavior: Clip.none,
-																						children: [
-																							Column(
-																								crossAxisAlignment: CrossAxisAlignment.start,
-																								children: [
-																									Container(
-																										width: 150,
-																										height: 150,
-																										child: Image.network(
-																											"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/whlntzbn_expires_30_days.png",
-																											fit: BoxFit.fill,
-																										)
-																									),
-																								]
-																							),
-																							Positioned(
-																								bottom: 8,
-																								right: 0,
-																								width: 60,
-																								height: 60,
-																								child: Container(
-																									transform: Matrix4.translationValues(17, 0, 0),
-																									width: 60,
-																									height: 60,
-																									child: Image.network(
-																										"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/5xwvjqig_expires_30_days.png",
-																										fit: BoxFit.fill,
-																									)
-																								),
-																							),
-																						]
-																					),
-																				),
-																			),
-																		),
-																		Container(
-																			margin: const EdgeInsets.only( top: 22),
-																			width: 60,
-																			height: 60,
-																			child: Image.network(
-																				"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/gnkq5is6_expires_30_days.png",
-																				fit: BoxFit.fill,
-																			)
-																		),
-																	]
-																),
-															),
-														),
-													),
-													Container(
-														margin: const EdgeInsets.only( left: 100),
-														width: 150,
-														height: 60,
-														child: Image.network(
-															"https://storage.googleapis.com/tagjs-prod.appspot.com/v1/Y8FDqv2vvv/3u6rh9vi_expires_30_days.png",
-															fit: BoxFit.fill,
-														)
-													),
 												],
-											)
+											),
 										),
 									),
 								),
