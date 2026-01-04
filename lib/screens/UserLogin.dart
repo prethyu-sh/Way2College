@@ -1,4 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+// import dashboards
+import 'package:bus_tracker/screens/BusSecretaryDashboard.dart';
+import 'package:bus_tracker/screens/BusAttendantDashboard.dart';
+import 'package:bus_tracker/screens/DriverDashboard.dart';
+import 'package:bus_tracker/screens/StudentDashboard.dart';
 
 class UserLogin extends StatefulWidget {
   const UserLogin({super.key});
@@ -261,9 +268,7 @@ class UserLoginState extends State<UserLogin> {
                                     ),
                                   ),
                                   InkWell(
-                                    onTap: () {
-                                      print('Pressed');
-                                    },
+                                    onTap: loginUser,
                                     child: IntrinsicWidth(
                                       child: IntrinsicHeight(
                                         child: Container(
@@ -392,5 +397,79 @@ class UserLoginState extends State<UserLogin> {
         ),
       ),
     );
+  }
+
+  Future<void> loginUser() async {
+    if (textField1.isEmpty || textField2.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please enter username and password")),
+      );
+      return;
+    }
+
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(textField1) // userId as document ID
+          .get();
+
+      if (!doc.exists) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("User not found")));
+        return;
+      }
+
+      final data = doc.data()!;
+      final dbPassword = data['Password'];
+      final role = data['Role'];
+
+      if (dbPassword != textField2) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Incorrect password")));
+        return;
+      }
+
+      // ✅ LOGIN SUCCESS → REDIRECT BY ROLE
+      switch (role) {
+        case 'Bus Secretary':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => BusSecretaryDashboard1()),
+          );
+          break;
+
+        case 'Driver':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => DriverDashboard()),
+          );
+          break;
+
+        case 'Student':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => StudentDashboard()),
+          );
+          break;
+
+        case 'Bus Attendant':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => BusAttendantDashboard()),
+          );
+          break;
+
+        default:
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Invalid user role")));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+    }
   }
 }

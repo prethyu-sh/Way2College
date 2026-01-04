@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'screens/LoadingScreen1.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'firebase_test.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,9 +21,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
-    // ✅ SAFE PLACE TO CALL FIRESTORE
-    testFirebase();
   }
 
   @override
