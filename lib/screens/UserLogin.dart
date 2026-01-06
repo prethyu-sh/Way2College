@@ -16,6 +16,7 @@ class UserLogin extends StatefulWidget {
 class UserLoginState extends State<UserLogin> {
   String textField1 = '';
   String textField2 = '';
+  bool _obscurePassword = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,7 +243,12 @@ class UserLoginState extends State<UserLogin> {
                                       ),
                                       width: double.infinity,
                                       child: TextField(
-                                        style: TextStyle(
+                                        obscureText:
+                                            _obscurePassword, //  hide/show password
+                                        textAlignVertical:
+                                            TextAlignVertical.center,
+
+                                        style: const TextStyle(
                                           color: Color(0xFF000000),
                                           fontSize: 16,
                                         ),
@@ -263,6 +269,22 @@ class UserLoginState extends State<UserLogin> {
                                           border: InputBorder.none,
                                           focusedBorder: InputBorder.none,
                                           filled: false,
+
+                                          //  EYE ICON
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              _obscurePassword
+                                                  ? Icons.visibility_off
+                                                  : Icons.visibility,
+                                              color: Colors.grey,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _obscurePassword =
+                                                    !_obscurePassword;
+                                              });
+                                            },
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -402,21 +424,21 @@ class UserLoginState extends State<UserLogin> {
   Future<void> loginUser() async {
     if (textField1.isEmpty || textField2.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please enter username and password")),
+        const SnackBar(content: Text("Please enter username and password")),
       );
       return;
     }
 
     try {
-      final doc = await FirebaseFirestore.instance
+      final docRef = FirebaseFirestore.instance
           .collection('Users')
-          .doc(textField1) // userId as document ID
-          .get();
+          .doc(textField1);
+      final doc = await docRef.get();
 
       if (!doc.exists) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("User not found")));
+        ).showSnackBar(const SnackBar(content: Text("User not found")));
         return;
       }
 
@@ -424,47 +446,140 @@ class UserLoginState extends State<UserLogin> {
       final dbPassword = data['Password'];
       final role = data['Role'];
 
+      int failedAttempts = data['FailedAttempts'] ?? 0;
+      Timestamp? firstFailedAtTs = data['FirstFailedAt'];
+      Timestamp? lockUntilTs = data['LockUntil'];
+
+      final DateTime now = DateTime.now();
+
+      // 🔒 CHECK ACCOUNT LOCK
+      if (lockUntilTs != null) {
+        final lockUntil = lockUntilTs.toDate();
+        if (now.isBefore(lockUntil)) {
+          final remaining = lockUntil.difference(now).inMinutes.clamp(1, 60);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Account locked. Try again in $remaining minutes."),
+            ),
+          );
+          return;
+        } else {
+          // Lock expired → reset everything
+          await docRef.update({
+            'FailedAttempts': 0,
+            'FirstFailedAt': null,
+            'LockUntil': null,
+          });
+          failedAttempts = 0;
+          firstFailedAtTs = null;
+        }
+      }
+
+      // ❌ WRONG PASSWORD
       if (dbPassword != textField2) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Incorrect password")));
+        // First failed attempt
+        if (firstFailedAtTs == null) {
+          await docRef.update({
+            'FailedAttempts': 1,
+            'FirstFailedAt': Timestamp.fromDate(now),
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Incorrect password. Attempt 1 of 5")),
+          );
+          return;
+        }
+
+        final firstFailedAt = firstFailedAtTs.toDate();
+
+        // ⏳ If 1 hour passed → reset counter
+        if (now.difference(firstFailedAt).inHours >= 1) {
+          await docRef.update({
+            'FailedAttempts': 1,
+            'FirstFailedAt': Timestamp.fromDate(now),
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Previous attempts expired. Attempt 1 of 5"),
+            ),
+          );
+          return;
+        }
+
+        // Increment attempts
+        failedAttempts++;
+
+        if (failedAttempts >= 5) {
+          await docRef.update({
+            'FailedAttempts': 0,
+            'FirstFailedAt': null,
+            'LockUntil': Timestamp.fromDate(now.add(const Duration(hours: 1))),
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "Too many failed attempts. Account locked for 1 hour.",
+              ),
+            ),
+          );
+        } else {
+          await docRef.update({'FailedAttempts': failedAttempts});
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Incorrect password. Attempt $failedAttempts of 5.",
+              ),
+            ),
+          );
+        }
         return;
       }
 
-      // ✅ LOGIN SUCCESS → REDIRECT BY ROLE
+      // ✅ SUCCESSFUL LOGIN → RESET SECURITY DATA
+      await docRef.update({
+        'FailedAttempts': 0,
+        'FirstFailedAt': null,
+        'LockUntil': null,
+      });
+
+      // 🚀 REDIRECT BY ROLE
       switch (role) {
         case 'Bus Secretary':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => BusSecretaryDashboard()),
+            MaterialPageRoute(builder: (_) => const BusSecretaryDashboard()),
           );
           break;
 
         case 'Driver':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => DriverDashboard()),
+            MaterialPageRoute(builder: (_) => const DriverDashboard()),
           );
           break;
 
         case 'Student':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => StudentDashboard()),
+            MaterialPageRoute(builder: (_) => const StudentDashboard()),
           );
           break;
 
         case 'Bus Attendant':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => BusAttendantDashboard()),
+            MaterialPageRoute(builder: (_) => const BusAttendantDashboard()),
           );
           break;
 
         default:
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text("Invalid user role")));
+          ).showSnackBar(const SnackBar(content: Text("Invalid user role")));
       }
     } catch (e) {
       ScaffoldMessenger.of(
