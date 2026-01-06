@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:flutter/material.dart';
 import 'LoginOrSigup.dart'; // <-- import your next screen
 
@@ -63,7 +64,7 @@ class LoadingScreen1State extends State<LoadingScreen1> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const LoginOrSigup(),
+                                  builder: (_) => const UserLogin(),
                                 ),
                               );
                             },
