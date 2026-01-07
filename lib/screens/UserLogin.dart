@@ -445,6 +445,18 @@ class UserLoginState extends State<UserLogin> {
       final data = doc.data()!;
       final dbPassword = data['Password'];
       final role = data['Role'];
+      final bool isActive = data['Active'] ?? true;
+
+      if (!isActive) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Your account has been deactivated. Please contact the Bus Secretary.",
+            ),
+          ),
+        );
+        return;
+      }
 
       int failedAttempts = data['FailedAttempts'] ?? 0;
       Timestamp? firstFailedAtTs = data['FirstFailedAt'];
@@ -476,7 +488,7 @@ class UserLoginState extends State<UserLogin> {
         }
       }
 
-      // ❌ WRONG PASSWORD
+      //  WRONG PASSWORD
       if (dbPassword != textField2) {
         // First failed attempt
         if (firstFailedAtTs == null) {
@@ -539,14 +551,14 @@ class UserLoginState extends State<UserLogin> {
         return;
       }
 
-      // ✅ SUCCESSFUL LOGIN → RESET SECURITY DATA
+      //  SUCCESSFUL LOGIN → RESET SECURITY DATA
       await docRef.update({
         'FailedAttempts': 0,
         'FirstFailedAt': null,
         'LockUntil': null,
       });
 
-      // 🚀 REDIRECT BY ROLE
+      //  REDIRECT BY ROLE
       switch (role) {
         case 'Bus Secretary':
           Navigator.pushReplacement(

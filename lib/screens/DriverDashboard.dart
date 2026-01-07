@@ -13,7 +13,7 @@ class DriverDashboard extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF154C79),
         elevation: 0,
-        automaticallyImplyLeading: false, // ❌ disables back arrow
+        automaticallyImplyLeading: false, //  disables back arrow
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
