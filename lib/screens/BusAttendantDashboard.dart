@@ -58,12 +58,12 @@ class BusAttendantDashboard extends StatelessWidget {
         ],
       ),
 
-      // 🔹 BODY (SCROLLABLE)
+      //  BODY (SCROLLABLE)
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           children: [
-            // 🪑 SEAT AVAILABILITY TRACKER
+            //  SEAT AVAILABILITY TRACKER
             _blueCard(
               child: Column(
                 children: [
@@ -78,12 +78,12 @@ class BusAttendantDashboard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // 🚨 EMERGENCY REPORTING
+            //  EMERGENCY REPORTING
             _roundedButton("EMERGENCY REPORTING", () {}),
 
             const SizedBox(height: 20),
 
-            // 🧳 LOST ITEM REPORTING
+            //  LOST ITEM REPORTING
             _blueCard(
               child: Column(
                 children: [
@@ -102,7 +102,7 @@ class BusAttendantDashboard extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🚌 ASSIGNED BUS & ROUTE
+            // ASSIGNED BUS & ROUTE
             _blueCard(
               child: Column(
                 children: [
@@ -117,12 +117,12 @@ class BusAttendantDashboard extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // 🎟 BUS PASS VERIFY
+            //  BUS PASS VERIFY
             _roundedButton("BUS PASS VERIFY", () {}),
 
             const SizedBox(height: 20),
 
-            // 🗺 MAP + UPDATE STATUS
+            //  MAP + UPDATE STATUS
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -186,7 +186,7 @@ class BusAttendantDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 BLUE CARD
+  //  BLUE CARD
   Widget _blueCard({required Widget child}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -201,7 +201,7 @@ class BusAttendantDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 WHITE TILE
+  //  WHITE TILE
   Widget _whiteTile(String text) {
     return Container(
       width: double.infinity,
@@ -219,7 +219,7 @@ class BusAttendantDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 WHITE BAR
+  //  WHITE BAR
   Widget _whiteBar({double height = 20}) {
     return Container(
       width: double.infinity,
@@ -231,7 +231,7 @@ class BusAttendantDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 ROUNDED BUTTON
+  //  ROUNDED BUTTON
   Widget _roundedButton(String text, VoidCallback onTap) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(

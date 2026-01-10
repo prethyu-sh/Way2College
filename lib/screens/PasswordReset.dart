@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bus_tracker/utils/PasswordUtils.dart';
 
 class PasswordResetScreen extends StatefulWidget {
   const PasswordResetScreen({super.key});
@@ -62,7 +63,9 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
               await FirebaseFirestore.instance
                   .collection('Users')
                   .doc(docId)
-                  .update({'Password': _passwordController.text.trim()});
+                  .update({
+                    'Password': hashPassword(_passwordController.text.trim()),
+                  });
 
               Navigator.pop(context);
 
@@ -89,7 +92,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       ),
       body: Column(
         children: [
-          // 🔍 FILTERS
+          //  FILTERS
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -129,7 +132,7 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             ),
           ),
 
-          // 📋 USER LIST
+          //  USER LIST
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance

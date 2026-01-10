@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bus_tracker/utils/PasswordUtils.dart';
 
 class AddUserScreen extends StatefulWidget {
   const AddUserScreen({super.key});
@@ -21,7 +22,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
         .doc(_userIdController.text)
         .set({
           'UserId': _userIdController.text,
-          'Password': _passwordController.text,
+          'Password': hashPassword(_passwordController.text.trim()),
           'Name': _nameController.text,
           'Role': role,
           'Active': true,

@@ -41,7 +41,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
 
     final data = widget.userDoc.data() as Map<String, dynamic>;
 
-    // 🔁 Handle UserId change
+    //  Handle UserId change
     if (oldDocId != newUserId) {
       final newDocRef = FirebaseFirestore.instance
           .collection('Users')
@@ -81,14 +81,14 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   }
 
   void _confirmDeleteUser() {
-    if (selectedRole == 'Bus Secretary') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Bus Secretary account cannot be deleted"),
-        ),
-      );
-      return;
-    }
+    // if (selectedRole == 'Bus Secretary') {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text("Bus Secretary account cannot be deleted"),
+    //     ),
+    //   );
+    //   return;
+    // }
 
     showDialog(
       context: context,
@@ -192,9 +192,8 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                 ),
-                onPressed: selectedRole == 'Bus Secretary'
-                    ? null // ❌ disables button
-                    : _confirmDeleteUser,
+                onPressed: //  disables button
+                    _confirmDeleteUser,
                 child: const Text("DELETE USER"),
               ),
               // if (selectedRole == 'Bus Secretary') ...[
@@ -211,7 +210,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  // 🔹 DISPLAY TILE
+  //  DISPLAY TILE
   Widget _infoTile(
     String label,
     String value, {
@@ -249,7 +248,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  // ✏️ EDIT TEXT FIELD
+  //  EDIT TEXT FIELD
   Widget _editField(String label, TextEditingController controller) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -263,7 +262,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     );
   }
 
-  // 🔽 ROLE DROPDOWN
+  //  ROLE DROPDOWN
   Widget _roleDropdown() {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

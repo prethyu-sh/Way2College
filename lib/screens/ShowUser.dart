@@ -30,7 +30,7 @@ class _ShowUsersScreenState extends State<ShowUsersScreen> {
       ),
       body: Column(
         children: [
-          // 🔍 FILTER SECTION
+          //  FILTER SECTION
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -70,7 +70,7 @@ class _ShowUsersScreenState extends State<ShowUsersScreen> {
             ),
           ),
 
-          // 📋 USER LIST
+          //  USER LIST
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance

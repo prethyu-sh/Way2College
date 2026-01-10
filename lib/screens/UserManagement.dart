@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/BulkUsersUploadScreen.dart';
 import 'package:bus_tracker/screens/PasswordReset.dart';
 import 'package:bus_tracker/screens/UserDeactivation.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,9 @@ class UserManagementScreen extends StatelessWidget {
                   _whiteButton("ADD USERS", () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const AddUserScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const BulkUserUploadScreen(),
+                      ),
                     );
                   }),
                 ],
@@ -80,7 +83,7 @@ class UserManagementScreen extends StatelessWidget {
     );
   }
 
-  // 🔵 BLUE CARD
+  // BLUE CARD
   Widget _blueCard({required Widget child}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -95,7 +98,7 @@ class UserManagementScreen extends StatelessWidget {
     );
   }
 
-  // ⚪ WHITE BUTTON
+  //  WHITE BUTTON
   Widget _whiteButton(String text, VoidCallback onTap) {
     return SizedBox(
       width: double.infinity,
@@ -117,7 +120,7 @@ class UserManagementScreen extends StatelessWidget {
     );
   }
 
-  // ⚪ GREY BUTTON
+  //  GREY BUTTON
   Widget _greyButton(String text, VoidCallback onTap) {
     return SizedBox(
       width: double.infinity,

@@ -9,7 +9,7 @@ class StudentDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // 🔹 APP BAR
+      //  APP BAR
       appBar: AppBar(
         backgroundColor: const Color(0xFF154C79),
         elevation: 0,
@@ -58,12 +58,12 @@ class StudentDashboard extends StatelessWidget {
         ],
       ),
 
-      // 🔹 BODY (Scrollable)
+      //  BODY (Scrollable)
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           children: [
-            // 🔵 ROUTE SELECTED CARD
+            //  ROUTE SELECTED CARD
             _blueCard(
               child: Column(
                 children: [
@@ -78,7 +78,7 @@ class StudentDashboard extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // 🗺 MAP + BUS STATUS
+            // MAP + BUS STATUS
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -106,7 +106,7 @@ class StudentDashboard extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🚌 BUS PASS CARD
+            //  BUS PASS CARD
             _blueCard(
               child: Column(
                 children: [
@@ -119,7 +119,7 @@ class StudentDashboard extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🔎 LOST AND FOUND CARD
+            //  LOST AND FOUND CARD
             _blueCard(
               child: Column(
                 children: [
@@ -168,7 +168,7 @@ class StudentDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 BLUE CONTAINER
+  //  BLUE CONTAINER
   Widget _blueCard({required Widget child}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -183,7 +183,7 @@ class StudentDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 WHITE TILE
+  //  WHITE TILE
   Widget _whiteTile(String text) {
     return Container(
       width: double.infinity,
@@ -201,7 +201,7 @@ class StudentDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 WHITE BAR
+  //  WHITE BAR
   Widget _whiteBar({double height = 20}) {
     return Container(
       width: double.infinity,
@@ -213,7 +213,7 @@ class StudentDashboard extends StatelessWidget {
     );
   }
 
-  // 🔹 ROUNDED BUTTON
+  //  ROUNDED BUTTON
   Widget _roundedButton(String text, VoidCallback onTap) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(

@@ -1,3 +1,4 @@
+import 'package:bus_tracker/utils/PasswordUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -487,9 +488,9 @@ class UserLoginState extends State<UserLogin> {
           firstFailedAtTs = null;
         }
       }
-
+      final enteredHashedPassword = hashPassword(textField2);
       //  WRONG PASSWORD
-      if (dbPassword != textField2) {
+      if (dbPassword != enteredHashedPassword) {
         // First failed attempt
         if (firstFailedAtTs == null) {
           await docRef.update({
