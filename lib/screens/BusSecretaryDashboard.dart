@@ -8,137 +8,170 @@ class BusSecretaryDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF2EEEE),
 
-      //  APP BAR
       appBar: AppBar(
-        backgroundColor: const Color(0xFF154C79),
+        backgroundColor: const Color(0xFFF2EEEE),
         elevation: 0,
         automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.person, color: Colors.black),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () {},
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'logout') {
-                  _showLogoutDialog(context);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout, color: Colors.red),
-                      SizedBox(width: 10),
-                      Text("Logout"),
-                    ],
-                  ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            onPressed: () {},
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'logout') {
+                _showLogoutDialog(context);
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text("Logout"),
+                  ],
                 ),
-              ],
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: const Icon(Icons.menu, color: Colors.black),
               ),
-            ),
+            ],
+            icon: const Icon(Icons.menu, color: Colors.black),
           ),
         ],
       ),
 
-      //  BODY (SCROLLABLE)
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            //  ROLE & ROUTE CARD
-            _blueCard(
+            // ASSIGN BUS / ROLE CARD
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A5C43),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 children: [
-                  _whiteTile("ROLE SELECTED"),
+                  _actionTile(icon: Icons.directions_bus, text: "Assign Bus"),
                   const SizedBox(height: 16),
-                  _whiteTile("ROUTE ASSIGNED"),
+                  _actionTile(
+                    icon: Icons.person_outline,
+                    text: "Assign Role",
+                    underline: true,
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 20),
 
-            //  USER MANAGEMENT BUTTON
-            _roundedButton("USER MANAGEMENT", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const UserManagementScreen()),
-              );
-            }),
+            // USER MANAGEMENT BUTTON
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E2E2E),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const UserManagementScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  "User Management",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
 
             const SizedBox(height: 20),
 
-            //  MAP + BUS PASS FEE
-            _blueCard(
-              child: Column(
+            // MAP CARD
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Stack(
                 children: [
                   Container(
-                    height: 180,
+                    height: 220,
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
                     child: const Text(
                       "MAP_VIEW",
                       style: TextStyle(color: Colors.black54),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 70,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            "BUS PASS FEE",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Container(
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFA6D854),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ],
+                      child: const Text(
+                        "Tap to Track",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required String text,
+    bool underline = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 28),
+          const SizedBox(width: 16),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              decoration: underline ? TextDecoration.underline : null,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -170,56 +203,6 @@ class BusSecretaryDashboard extends StatelessWidget {
             child: const Text("Logout", style: TextStyle(color: Colors.red)),
           ),
         ],
-      ),
-    );
-  }
-
-  //  BLUE CARD
-  Widget _blueCard({required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF154C79),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: child,
-      ),
-    );
-  }
-
-  //  WHITE TILE
-  Widget _whiteTile(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-
-  //  ROUNDED BUTTON
-  Widget _roundedButton(String text, VoidCallback onTap) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF154C79),
-        foregroundColor: Colors.white, // ⭐ THIS fixes text color
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-      ),
-      onPressed: onTap,
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     );
   }

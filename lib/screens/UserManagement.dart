@@ -2,7 +2,6 @@ import 'package:bus_tracker/screens/BulkUsersUploadScreen.dart';
 import 'package:bus_tracker/screens/PasswordReset.dart';
 import 'package:bus_tracker/screens/UserDeactivation.dart';
 import 'package:flutter/material.dart';
-import 'package:bus_tracker/screens/AddUser.dart';
 import 'package:bus_tracker/screens/ShowUser.dart';
 
 class UserManagementScreen extends StatelessWidget {
