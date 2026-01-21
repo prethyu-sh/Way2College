@@ -131,23 +131,14 @@ class _ShowUsersScreenState extends State<ShowUsersScreen> {
                         subtitle: Text(
                           "ID: ${user['UserId']} • Role: ${user['Role']}",
                         ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? Colors.green.shade100
-                                : Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        trailing: TextButton(
+                          onPressed: () {
+                            _confirmToggleUserStatus(context, user, isActive);
+                          },
                           child: Text(
-                            isActive ? "ACTIVE" : "INACTIVE",
+                            isActive ? "Deactivate" : "Activate",
                             style: TextStyle(
-                              color: isActive
-                                  ? Colors.green.shade800
-                                  : Colors.red.shade800,
+                              color: isActive ? Colors.red : Colors.green,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -157,6 +148,54 @@ class _ShowUsersScreenState extends State<ShowUsersScreen> {
                   },
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmToggleUserStatus(
+    BuildContext context,
+    DocumentSnapshot user,
+    bool isActive,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(isActive ? "Deactivate User" : "Activate User"),
+        content: Text(
+          isActive
+              ? "Are you sure you want to deactivate this user?\n\nThe user will not be able to login."
+              : "Are you sure you want to activate this user?\n\nThe user will be able to login again.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              await FirebaseFirestore.instance
+                  .collection('Users')
+                  .doc(user.id)
+                  .update({'Active': !isActive});
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    isActive
+                        ? "User deactivated successfully"
+                        : "User activated successfully",
+                  ),
+                ),
+              );
+            },
+            child: Text(
+              isActive ? "Deactivate" : "Activate",
+              style: TextStyle(color: isActive ? Colors.red : Colors.green),
             ),
           ),
         ],

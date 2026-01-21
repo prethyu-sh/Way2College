@@ -1,6 +1,4 @@
 import 'package:bus_tracker/screens/BulkUsersUploadScreen.dart';
-import 'package:bus_tracker/screens/PasswordReset.dart';
-import 'package:bus_tracker/screens/UserDeactivation.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/ShowUser.dart';
 
@@ -51,31 +49,6 @@ class UserManagementScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 25),
-
-            // PASSWORD RESET / DEACTIVATION
-            _blueCard(
-              child: Column(
-                children: [
-                  _greyButton("Password Reset", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const PasswordResetScreen(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 20),
-                  _greyButton("User Deactivation", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const UserDeactivationScreen(),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -120,21 +93,21 @@ class UserManagementScreen extends StatelessWidget {
   }
 
   //  GREY BUTTON
-  Widget _greyButton(String text, VoidCallback onTap) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFE0E0E0),
-          foregroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 18),
-        ),
-        onPressed: onTap,
-        child: Text(text, style: const TextStyle(fontSize: 16)),
-      ),
-    );
-  }
+  // Widget _greyButton(String text, VoidCallback onTap) {
+  //   return SizedBox(
+  //     width: double.infinity,
+  //     child: ElevatedButton(
+  //       style: ElevatedButton.styleFrom(
+  //         backgroundColor: const Color(0xFFE0E0E0),
+  //         foregroundColor: Colors.black,
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(18),
+  //         ),
+  //         padding: const EdgeInsets.symmetric(vertical: 18),
+  //       ),
+  //       onPressed: onTap,
+  //       child: Text(text, style: const TextStyle(fontSize: 16)),
+  //     ),
+  //   );
+  // }
 }

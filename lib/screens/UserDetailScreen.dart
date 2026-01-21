@@ -1,3 +1,4 @@
+import 'package:bus_tracker/utils/PasswordUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -14,6 +15,10 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
   late TextEditingController nameController;
   late TextEditingController userIdController;
   late String selectedRole;
+
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool isEditMode = false;
 
@@ -129,6 +134,79 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
     ).showSnackBar(const SnackBar(content: Text("User deleted successfully")));
   }
 
+  Future<void> _resetPassword() async {
+    final newPassword = _newPasswordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (newPassword.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill both password fields")),
+      );
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
+      return;
+    }
+
+    final hashed = hashPassword(newPassword);
+
+    await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(widget.userDoc.id)
+        .update({'Password': hashed});
+
+    Navigator.pop(context); // close dialog
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Password reset successfully")),
+    );
+  }
+
+  void _showResetPasswordDialog() {
+    _newPasswordController.clear();
+    _confirmPasswordController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Reset Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _newPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "New Password",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "Confirm Password",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(onPressed: _resetPassword, child: const Text("Reset")),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = widget.userDoc.data() as Map<String, dynamic>;
@@ -155,7 +233,7 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
@@ -176,26 +254,47 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
             ),
 
             if (isEditMode) ...[
+              // SAVE BUTTON
               const SizedBox(height: 24),
 
-              // SAVE BUTTON
-              ElevatedButton(
-                onPressed: _saveChanges,
-                child: const Text("SAVE CHANGES"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _showResetPasswordDialog,
+                      child: const Text("RESET PASSWORD"),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: _confirmDeleteUser,
+                      child: const Text("DELETE USER"),
+                    ),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
 
-              // DELETE BUTTON
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+              Center(
+                child: ElevatedButton(
+                  onPressed: _saveChanges,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 14,
+                    ),
+                  ),
+                  child: const Text("SAVE CHANGES"),
                 ),
-                onPressed: //  disables button
-                    _confirmDeleteUser,
-                child: const Text("DELETE USER"),
               ),
+
               // if (selectedRole == 'Bus Secretary') ...[
               //   const SizedBox(height: 8),
               //   const Text(

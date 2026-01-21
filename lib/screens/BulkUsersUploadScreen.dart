@@ -41,6 +41,7 @@ class _BulkUserUploadScreenState extends State<BulkUserUploadScreen> {
 
   Future<void> _validateCSV() async {
     validationErrors.clear();
+    final nameRegex = RegExp(r'^[A-Za-z][A-Za-z .]*$');
 
     final validRoles = ['Bus Secretary', 'Driver', 'Student', 'Bus Attendant'];
 
@@ -53,6 +54,12 @@ class _BulkUserUploadScreenState extends State<BulkUserUploadScreen> {
       final name = row[1].toString().trim();
       final role = row[2].toString().trim();
       final password = row[3].toString().trim();
+
+      if (!nameRegex.hasMatch(name)) {
+        validationErrors.add(
+          "Row ${i + 2}: Invalid name '$name'. Only letters and spaces are allowed",
+        );
+      }
 
       if (userId.isEmpty || name.isEmpty || role.isEmpty || password.isEmpty) {
         validationErrors.add("Row ${i + 2}: Missing required fields");
