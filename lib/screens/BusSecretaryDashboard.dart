@@ -69,12 +69,12 @@ class BusSecretaryDashboard extends StatelessWidget {
 
                       const SizedBox(height: 16),
                       _whiteTile(
-                        "Assign Role",
+                        "Staff Assignment",
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const AssignRoleScreen(),
+                              builder: (_) => const AssignStaffScreen(),
                             ),
                           );
                         },

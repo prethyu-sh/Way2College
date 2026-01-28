@@ -377,7 +377,9 @@ class UserLoginState extends State<UserLogin> {
         case 'Driver':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const DriverDashboard()),
+            MaterialPageRoute(
+              builder: (_) => DriverDashboard(userId: textField1),
+            ),
           );
           break;
 
@@ -391,7 +393,9 @@ class UserLoginState extends State<UserLogin> {
         case 'Bus Attendant':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const BusAttendantDashboard()),
+            MaterialPageRoute(
+              builder: (_) => BusAttendantDashboard(userId: textField1),
+            ),
           );
           break;
 

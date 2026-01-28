@@ -1,164 +1,123 @@
-import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class BusAttendantDashboard extends StatelessWidget {
-  const BusAttendantDashboard({super.key});
+  final String userId;
+
+  const BusAttendantDashboard({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
-      // 🔹 APP BAR
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF154C79),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.person, color: Colors.black),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'logout') {
-                  _showLogoutDialog(context);
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout, color: Colors.red),
-                      SizedBox(width: 10),
-                      Text("Logout"),
-                    ],
-                  ),
-                ),
-              ],
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: const Icon(Icons.menu, color: Colors.black),
-              ),
-            ),
-          ),
-        ],
-      ),
-
-      //  BODY (SCROLLABLE)
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      backgroundColor: const Color(0xFFEEEAEA),
+      body: SafeArea(
         child: Column(
           children: [
-            //  SEAT AVAILABILITY TRACKER
-            _blueCard(
-              child: Column(
+            // TOP BAR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _whiteTile("SEAT AVAILABILITY TRACKER"),
-                  const SizedBox(height: 12),
-                  _whiteBar(height: 40),
-                  const SizedBox(height: 12),
-                  _whiteBar(),
+                  _topChip("way2College"),
+                  Row(
+                    children: [
+                      _iconBox(Icons.notifications_none),
+                      const SizedBox(width: 12),
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'logout') {
+                            _showLogoutDialog(context);
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.red),
+                                SizedBox(width: 10),
+                                Text("Logout"),
+                              ],
+                            ),
+                          ),
+                        ],
+                        child: _iconBox(Icons.menu),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            //  EMERGENCY REPORTING
-            _roundedButton("EMERGENCY REPORTING", () {}),
-
-            const SizedBox(height: 20),
-
-            //  LOST ITEM REPORTING
-            _blueCard(
-              child: Column(
-                children: [
-                  _whiteTile("LOST ITEM REPORTING"),
-                  const SizedBox(height: 12),
-                  _whiteBar(height: 40),
-                  const SizedBox(height: 12),
-                  _whiteBar(),
-                  const SizedBox(height: 8),
-                  _whiteBar(),
-                  const SizedBox(height: 8),
-                  _whiteBar(),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // ASSIGNED BUS & ROUTE
-            _blueCard(
-              child: Column(
-                children: [
-                  _whiteTile("ASSIGNED BUS"),
-                  const SizedBox(height: 12),
-                  _whiteTile("ASSIGNED ROUTE"),
-                  const SizedBox(height: 12),
-                  _whiteBar(),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            //  BUS PASS VERIFY
-            _roundedButton("BUS PASS VERIFY", () {}),
-
-            const SizedBox(height: 20),
-
-            //  MAP + UPDATE STATUS
+            // BUS DETAILS CARD
+            // BUS DETAILS CARD (DYNAMIC FROM FIRESTORE)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    _roundedButton("UPDATE BUS STATUS", () {}),
-                    const SizedBox(height: 16),
-                    Container(
-                      height: 200,
-                      alignment: Alignment.center,
-                      child: const Text(
-                        "map_view",
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              child: _assignedBusCard(),
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
+
+            // ACTION CARDS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  _actionCard(
+                    icon: Icons.badge,
+                    text: "Bus Pass Verify",
+                    color: const Color(0xFF8E8BC7),
+                    onTap: () {
+                      // navigate to bus pass verify
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _actionCard(
+                    icon: Icons.warning,
+                    text: "Emergency",
+                    color: const Color(0xFF8E8BC7),
+                    onTap: () {
+                      // emergency action
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
+                  _actionCard(
+                    icon: Icons.inventory_2,
+                    text: "Lost Items Report",
+                    color: const Color(0xFF8E8BC7),
+                    onTap: () {
+                      // lost items page
+                    },
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+
+      // BOTTOM NAVIGATION
+      bottomNavigationBar: _bottomNav(),
+    );
+  }
+
+  void _logout(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const UserLogin()),
+      (route) => false,
     );
   }
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
@@ -178,69 +137,244 @@ class BusAttendantDashboard extends StatelessWidget {
     );
   }
 
-  void _logout(BuildContext context) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const UserLogin()),
-      (route) => false, // clears navigation stack
+  // ---------------- WIDGETS ----------------
+
+  Widget _assignedBusCard() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Users')
+          .doc(userId)
+          .snapshots(),
+      builder: (context, userSnap) {
+        if (!userSnap.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final userData = userSnap.data!.data() as Map<String, dynamic>;
+        final busId = userData['AssignedBusId'];
+        final routeId = userData['AssignedRouteId'];
+
+        if (busId == null || routeId == null) {
+          return _emptyBusCard();
+        }
+
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('Buses')
+              .doc(busId)
+              .snapshots(),
+          builder: (context, busSnap) {
+            if (!busSnap.hasData) return const SizedBox();
+
+            final busData = busSnap.data!.data() as Map<String, dynamic>;
+
+            return StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Routes')
+                  .doc(routeId)
+                  .snapshots(),
+              builder: (context, routeSnap) {
+                if (!routeSnap.hasData) return const SizedBox();
+
+                final routeData =
+                    routeSnap.data!.data() as Map<String, dynamic>;
+
+                return _busInfoUI(
+                  busName: (busData['busName'] ?? "Unknown Bus").toString(),
+                  routeName: (routeData['Name'] ?? "Unknown Route").toString(),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
-  //  BLUE CARD
-  Widget _blueCard({required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _busInfoUI({required String busName, required String routeName}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF095C42),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(4, 5)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.directions_bus, color: Colors.orange, size: 32),
+              const SizedBox(width: 12),
+              Text(
+                busName,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white24,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text("Route", style: const TextStyle(color: Colors.white)),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                routeName,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              // Text(
+              //   time,
+              //   style: const TextStyle(color: Colors.white, fontSize: 14),
+              // ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyBusCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF095C42),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: const Text(
+        "No bus assigned yet",
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _topChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+    );
+  }
+
+  Widget _iconBox(IconData icon) {
+    return Container(
+      height: 38,
+      width: 38,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
+      child: Icon(icon, color: Colors.black),
+    );
+  }
+
+  Widget _actionCard({
+    required IconData icon,
+    required String text,
+    required Color color,
+    Color textColor = Colors.white,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        height: 70,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF154C79),
-          borderRadius: BorderRadius.circular(20),
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
         ),
-        child: child,
-      ),
-    );
-  }
-
-  //  WHITE TILE
-  Widget _whiteTile(String text) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        child: Row(
+          children: [
+            Icon(icon, size: 30, color: textColor),
+            const SizedBox(width: 16),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  //  WHITE BAR
-  Widget _whiteBar({double height = 20}) {
-    return Container(
-      width: double.infinity,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+  Widget _bottomNav() {
+    return SizedBox(
+      height: 90,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(40),
+            ),
+          ),
+
+          // Left
+          Positioned(left: 60, child: _navIcon(Icons.directions_bus)),
+
+          // Center
+          Positioned(
+            bottom: 18,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black,
+                ),
+                child: const Icon(Icons.home, color: Colors.white, size: 30),
+              ),
+            ),
+          ),
+
+          // Right
+          Positioned(right: 60, child: _navIcon(Icons.person)),
+        ],
       ),
     );
   }
 
-  //  ROUNDED BUTTON
-  Widget _roundedButton(String text, VoidCallback onTap) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF154C79),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+  Widget _navIcon(IconData icon) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
       ),
-      onPressed: onTap,
-      child: Text(text, style: const TextStyle(fontSize: 16)),
+      child: Icon(icon, color: Colors.black),
     );
   }
 }

@@ -147,7 +147,7 @@ class _AssignBusScreenState extends State<AssignBusScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () => _confirmDeleteBus(bus.id),
+                      onPressed: () => _confirmDeleteBus(context, bus.id),
                       child: const Text(
                         "DELETE BUS",
                         style: TextStyle(color: Colors.red),
@@ -210,12 +210,15 @@ class _AssignBusScreenState extends State<AssignBusScreen> {
   }
 
   // DELETE CONFIRMATION
-  void _confirmDeleteBus(String busId) {
+  void _confirmDeleteBus(BuildContext context, String busId) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Delete Bus"),
-        content: const Text("Are you sure you want to delete this bus?"),
+        content: const Text(
+          "This bus will be removed and unassigned from all users.\n\n"
+          "Are you sure?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -224,16 +227,26 @@ class _AssignBusScreenState extends State<AssignBusScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              await FirebaseFirestore.instance
-                  .collection('Buses')
-                  .doc(busId)
-                  .delete();
+              await deleteBus(busId);
             },
             child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> deleteBus(String busId) async {
+    final users = await FirebaseFirestore.instance
+        .collection('Users')
+        .where('AssignedBusId', isEqualTo: busId)
+        .get();
+
+    for (var doc in users.docs) {
+      doc.reference.update({'AssignedBusId': null});
+    }
+
+    await FirebaseFirestore.instance.collection('Buses').doc(busId).delete();
   }
 }
 
