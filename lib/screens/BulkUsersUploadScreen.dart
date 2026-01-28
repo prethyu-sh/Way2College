@@ -116,6 +116,7 @@ class _BulkUserUploadScreenState extends State<BulkUserUploadScreen> {
           'Role': role,
           'Password': hashPassword(password),
           'Active': active,
+          'ForcePasswordReset': true,
         }, SetOptions(merge: true));
       }
 

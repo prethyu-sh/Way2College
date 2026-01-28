@@ -1,3 +1,5 @@
+import 'package:bus_tracker/screens/ForcePasswordReset.dart';
+import 'package:bus_tracker/screens/ForgotPassword.dart';
 import 'package:bus_tracker/utils/PasswordUtils.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -115,11 +117,22 @@ class UserLoginState extends State<UserLogin> {
 
                       Align(
                         alignment: Alignment.centerRight,
-                        child: Text(
-                          "Forget password?",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.blue.shade700,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Forgot password?",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -221,6 +234,24 @@ class UserLoginState extends State<UserLogin> {
       final data = doc.data()!;
       final dbPassword = data['Password'];
       final role = data['Role'];
+      final bool forceReset = data['ForcePasswordReset'] ?? false;
+
+      if (forceReset) {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                ForcePasswordResetScreen(userId: textField1, role: role),
+          ),
+        );
+
+        if (result == true) {
+          // Continue to dashboard after successful reset
+        } else {
+          return;
+        }
+      }
+
       final bool isActive = data['Active'] ?? true;
 
       if (!isActive) {

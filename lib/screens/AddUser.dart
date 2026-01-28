@@ -26,6 +26,7 @@ class _AddUserScreenState extends State<AddUserScreen> {
           'Name': _nameController.text,
           'Role': role,
           'Active': true,
+          'ForcePasswordReset': true,
         });
 
     Navigator.pop(context);
