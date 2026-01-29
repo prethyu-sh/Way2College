@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/SeatLayout.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -75,37 +76,38 @@ class AttendantMap extends StatelessWidget {
             ),
 
             // TRACK SEATS BUTTON (UNCHANGED)
+            // TRACK SEATS BUTTON (FUNCTIONAL)
             Positioned(
               bottom: 24,
               right: 24,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.yellow.shade600,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.event_seat, color: Colors.black),
-                    SizedBox(width: 8),
-                    Text(
-                      "Track Seats",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+              child: GestureDetector(
+                onTap: () => _openSeatLayout(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.yellow.shade600,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(0, 3),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.event_seat, color: Colors.black),
+                      SizedBox(width: 8),
+                      Text(
+                        "Track Seats",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -314,6 +316,32 @@ class AttendantMap extends StatelessWidget {
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
         ),
         child: Icon(icon, color: Colors.black),
+      ),
+    );
+  }
+
+  Future<void> _openSeatLayout(BuildContext context) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(userId)
+        .get();
+
+    final busId = userDoc.data()?['AssignedBusId'];
+
+    if (busId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("No bus assigned")));
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SeatLayoutPage(
+          busId: busId,
+          readOnly: false, // 👈 attendant can modify seats
+        ),
       ),
     );
   }
