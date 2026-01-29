@@ -1,11 +1,13 @@
 import 'package:bus_tracker/screens/AssignBus.dart';
 import 'package:bus_tracker/screens/AssignRole.dart';
+import 'package:bus_tracker/screens/SecretaryMap.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserManagement.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
 
 class BusSecretaryDashboard extends StatelessWidget {
-  const BusSecretaryDashboard({super.key});
+  final String userId;
+  const BusSecretaryDashboard({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class BusSecretaryDashboard extends StatelessWidget {
                   child: _iconBox(Icons.menu),
                 ),
               ),
-
+              // ASSIGN BUS / ROLE CARD
               // ASSIGN BUS / ROLE CARD
               Positioned(
                 top: 134,
@@ -66,7 +68,6 @@ class BusSecretaryDashboard extends StatelessWidget {
                           );
                         },
                       ),
-
                       const SizedBox(height: 16),
                       _whiteTile(
                         "Staff Assignment",
@@ -169,30 +170,18 @@ class BusSecretaryDashboard extends StatelessWidget {
 
             // Left button - Bus Route (white background)
             Positioned(
-              left: 55,
+              left: 60,
               bottom: 28,
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 3),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SecretaryMap(userId: userId),
                     ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.directions_bus),
-                  color: Colors.black,
-                  iconSize: 24,
-                  onPressed: () {
-                    // Navigate to Bus Route screen
-                  },
-                ),
+                  );
+                },
+                child: _navIcon(Icons.directions_bus),
               ),
             ),
 
@@ -381,6 +370,18 @@ class BusSecretaryDashboard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _navIcon(IconData icon) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+      ),
+      child: Icon(icon, color: Colors.black),
     );
   }
 }

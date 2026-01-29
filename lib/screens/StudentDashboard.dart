@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/StudentMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
@@ -111,7 +112,10 @@ class StudentDashboard extends StatelessWidget {
                                   items: buses.map((bus) {
                                     return DropdownMenuItem<String>(
                                       value: bus.id,
-                                      child: Text(bus['busName']),
+                                      child: Text(
+                                        bus['busName']?.toString() ??
+                                            "Unknown Bus",
+                                      ),
                                     );
                                   }).toList(),
                                   onChanged: (value) async {
@@ -210,7 +214,7 @@ class StudentDashboard extends StatelessWidget {
       ),
 
       // BOTTOM NAVIGATION
-      bottomNavigationBar: _bottomNav(),
+      bottomNavigationBar: _bottomNav(context),
     );
   }
 
@@ -285,7 +289,7 @@ class StudentDashboard extends StatelessWidget {
     );
   }
 
-  Widget _bottomNav() {
+  Widget _bottomNav(BuildContext context) {
     return SizedBox(
       height: 90,
       child: Stack(
@@ -299,7 +303,18 @@ class StudentDashboard extends StatelessWidget {
               borderRadius: BorderRadius.circular(40),
             ),
           ),
-          Positioned(left: 60, child: _navIcon(Icons.directions_bus)),
+          Positioned(
+            left: 60,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => StudentMap(userId: userId)),
+                );
+              },
+              child: _navIcon(Icons.directions_bus),
+            ),
+          ),
           Positioned(
             bottom: 18,
             child: Container(
@@ -392,7 +407,7 @@ class StudentDashboard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      routeData['Name'] ?? "Unknown Route",
+                      routeData['Name']?.toString() ?? "Unknown Route",
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w500,

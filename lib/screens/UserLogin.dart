@@ -370,7 +370,9 @@ class UserLoginState extends State<UserLogin> {
         case 'Bus Secretary':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const BusSecretaryDashboard()),
+            MaterialPageRoute(
+              builder: (_) => BusSecretaryDashboard(userId: textField1),
+            ),
           );
           break;
 
