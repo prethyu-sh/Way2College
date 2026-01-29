@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/DriverMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
@@ -101,7 +102,7 @@ class DriverDashboard extends StatelessWidget {
       ),
 
       // BOTTOM NAVIGATION
-      bottomNavigationBar: _bottomNav(),
+      bottomNavigationBar: _bottomNav(context),
     );
   }
 
@@ -274,7 +275,7 @@ class DriverDashboard extends StatelessWidget {
     );
   }
 
-  Widget _bottomNav() {
+  Widget _bottomNav(BuildContext context) {
     return SizedBox(
       height: 90,
       child: Stack(
@@ -288,7 +289,19 @@ class DriverDashboard extends StatelessWidget {
               borderRadius: BorderRadius.circular(40),
             ),
           ),
-          Positioned(left: 60, child: _navIcon(Icons.directions_bus)),
+          Positioned(
+            left: 60,
+            child: _navIcon(
+              Icons.directions_bus,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => DriverMap(userId: userId)),
+                );
+              },
+            ),
+          ),
+
           Positioned(
             bottom: 18,
             child: Container(
@@ -314,15 +327,18 @@ class DriverDashboard extends StatelessWidget {
     );
   }
 
-  Widget _navIcon(IconData icon) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
+  Widget _navIcon(IconData icon, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+        ),
+        child: Icon(icon, color: Colors.black),
       ),
-      child: Icon(icon, color: Colors.black),
     );
   }
 

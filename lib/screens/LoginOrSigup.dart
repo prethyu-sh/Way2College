@@ -1,8 +1,6 @@
 import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:bus_tracker/screens/UserRegister.dart';
 import 'package:flutter/material.dart';
-import 'UserLogin.dart';
-import 'SignUpFirstInterface.dart';
 
 class LoginOrSigup extends StatefulWidget {
   const LoginOrSigup({super.key});

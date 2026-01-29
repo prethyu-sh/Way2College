@@ -1,141 +1,220 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
 
 class StudentDashboard extends StatelessWidget {
-  const StudentDashboard({super.key});
+  final String userId;
+  const StudentDashboard({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
-      //  APP BAR
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF154C79),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.person, color: Colors.black),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'logout') {
-                  _showLogoutDialog(context);
-                }
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout, color: Colors.red),
-                      SizedBox(width: 10),
-                      Text("Logout"),
-                    ],
-                  ),
-                ),
-              ],
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: const Icon(Icons.menu, color: Colors.black),
-              ),
-            ),
-          ),
-        ],
-      ),
-
-      //  BODY (Scrollable)
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      backgroundColor: const Color(0xFFEDEDED),
+      body: SafeArea(
         child: Column(
           children: [
-            //  ROUTE SELECTED CARD
-            _blueCard(
-              child: Column(
+            // TOP BAR
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _whiteTile("ROUTE SELECTED"),
-                  const SizedBox(height: 12),
-                  _whiteBar(),
-                  const SizedBox(height: 12),
-                  _whiteBar(),
+                  _topChip("Way2College"),
+                  Row(
+                    children: [
+                      _iconBox(Icons.notifications_none),
+                      const SizedBox(width: 12),
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'logout') {
+                            _showLogoutDialog(context);
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'logout',
+                            child: Row(
+                              children: [
+                                Icon(Icons.logout, color: Colors.red),
+                                SizedBox(width: 10),
+                                Text("Logout"),
+                              ],
+                            ),
+                          ),
+                        ],
+                        child: _iconBox(Icons.menu),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 20),
+            // ROUTE CARD
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('Users')
+                    .doc(userId)
+                    .snapshots(),
+                builder: (context, userSnap) {
+                  if (!userSnap.hasData) {
+                    return const SizedBox();
+                  }
 
-            // MAP + BUS STATUS
+                  final userData =
+                      userSnap.data!.data() as Map<String, dynamic>;
+                  final selectedBusId = userData['AssignedBusId'];
+
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('Buses')
+                        .snapshots(),
+                    builder: (context, busSnap) {
+                      if (!busSnap.hasData) {
+                        return const SizedBox();
+                      }
+
+                      final buses = busSnap.data!.docs;
+
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0B5C43),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // BUS DROPDOWN
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: buses.any((b) => b.id == selectedBusId)
+                                      ? selectedBusId
+                                      : null,
+                                  hint: const Text(
+                                    "Select Bus",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  isExpanded: true,
+                                  items: buses.map((bus) {
+                                    return DropdownMenuItem<String>(
+                                      value: bus.id,
+                                      child: Text(bus['busName']),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) async {
+                                    await FirebaseFirestore.instance
+                                        .collection('Users')
+                                        .doc(userId)
+                                        .update({'AssignedBusId': value});
+                                  },
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // ROUTE DETAILS (AUTO FROM BUS)
+                            if (selectedBusId != null)
+                              _routeDetailsFromBus(selectedBusId),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // REPORT LOST ITEM
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 220,
-                      alignment: Alignment.center,
-                      child: const Text(
-                        "map_view",
-                        style: TextStyle(color: Colors.black54),
+                child: Row(
+                  children: const [
+                    SizedBox(width: 16),
+                    Icon(Icons.report_problem, color: Colors.blue),
+                    SizedBox(width: 12),
+                    Text(
+                      "Report Lost Item",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _roundedButton("BUS STATUS", () {}),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 16),
 
-            //  BUS PASS CARD
-            _blueCard(
-              child: Column(
-                children: [
-                  _whiteTile("BUS PASS"),
-                  const SizedBox(height: 16),
-                  _roundedButton("APPLY FOR BUS PASS", () {}),
-                ],
+            // STUDENT INFO CARD PLACEHOLDER
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                height: 180,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade400,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _whiteBar(),
+                          const SizedBox(height: 10),
+                          _whiteBar(),
+                          const SizedBox(height: 10),
+                          _whiteBar(width: 120),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 30),
-
-            //  LOST AND FOUND CARD
-            _blueCard(
-              child: Column(
-                children: [
-                  _whiteBar(height: 50),
-                  const SizedBox(height: 20),
-                  _whiteTile("LOST AND FOUND"),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 40),
           ],
         ),
       ),
+
+      // BOTTOM NAVIGATION
+      bottomNavigationBar: _bottomNav(),
     );
   }
+
+  // ---------------- LOGOUT (UNCHANGED) ----------------
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -164,65 +243,175 @@ class StudentDashboard extends StatelessWidget {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const UserLogin()),
-      (route) => false, // clears navigation stack
+      (route) => false,
     );
   }
 
-  //  BLUE CONTAINER
-  Widget _blueCard({required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF154C79),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: child,
-      ),
-    );
-  }
+  // ---------------- UI HELPERS ----------------
 
-  //  WHITE TILE
-  Widget _whiteTile(String text) {
+  Widget _topChip(String text) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
       ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
     );
   }
 
-  //  WHITE BAR
-  Widget _whiteBar({double height = 20}) {
+  Widget _iconBox(IconData icon) {
     return Container(
-      width: double.infinity,
-      height: height,
+      height: 38,
+      width: 38,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+      ),
+      child: Icon(icon, color: Colors.black),
+    );
+  }
+
+  Widget _whiteBar({double width = double.infinity}) {
+    return Container(
+      height: 14,
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }
 
-  //  ROUNDED BUTTON
-  Widget _roundedButton(String text, VoidCallback onTap) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF154C79),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+  Widget _bottomNav() {
+    return SizedBox(
+      height: 90,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(40),
+            ),
+          ),
+          Positioned(left: 60, child: _navIcon(Icons.directions_bus)),
+          Positioned(
+            bottom: 18,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black,
+                ),
+                child: const Icon(Icons.home, color: Colors.white),
+              ),
+            ),
+          ),
+          Positioned(right: 60, child: _navIcon(Icons.person)),
+        ],
       ),
-      onPressed: onTap,
-      child: Text(text, style: const TextStyle(fontSize: 16)),
+    );
+  }
+
+  Widget _navIcon(IconData icon) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+      ),
+      child: Icon(icon, color: Colors.black),
+    );
+  }
+
+  Widget _routeDetailsFromBus(String busId) {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Buses')
+          .doc(busId)
+          .snapshots(),
+      builder: (context, busSnap) {
+        if (!busSnap.hasData || !busSnap.data!.exists) {
+          return const SizedBox();
+        }
+
+        final busData = busSnap.data!.data() as Map<String, dynamic>;
+        final routeId = busData['routeId'];
+
+        if (routeId == null) {
+          return const Text(
+            "Route not assigned",
+            style: TextStyle(color: Colors.white),
+          );
+        }
+
+        return StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('Routes')
+              .doc(routeId)
+              .snapshots(),
+          builder: (context, routeSnap) {
+            if (!routeSnap.hasData || !routeSnap.data!.exists) {
+              return const SizedBox();
+            }
+
+            final routeData = routeSnap.data!.data() as Map<String, dynamic>;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    "Route",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      routeData['Name'] ?? "Unknown Route",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    // Text(
+                    //   routeData['Time'] ?? "",
+                    //   style: const TextStyle(
+                    //     color: Colors.white,
+                    //     fontWeight: FontWeight.w600,
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

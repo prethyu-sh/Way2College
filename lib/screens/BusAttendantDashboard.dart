@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/AttendantMap.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +103,7 @@ class BusAttendantDashboard extends StatelessWidget {
       ),
 
       // BOTTOM NAVIGATION
-      bottomNavigationBar: _bottomNav(),
+      bottomNavigationBar: _bottomNav(context),
     );
   }
 
@@ -320,7 +321,7 @@ class BusAttendantDashboard extends StatelessWidget {
     );
   }
 
-  Widget _bottomNav() {
+  Widget _bottomNav(BuildContext context) {
     return SizedBox(
       height: 90,
       child: Stack(
@@ -336,45 +337,75 @@ class BusAttendantDashboard extends StatelessWidget {
           ),
 
           // Left
-          Positioned(left: 60, child: _navIcon(Icons.directions_bus)),
+          Positioned(
+            left: 60,
+            child: _navIcon(
+              Icons.directions_bus,
+              onTap: () {
+                // Navigate to Bus Route / Map screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AttendantMap(userId: userId),
+                  ),
+                );
+              },
+            ),
+          ),
 
           // Center
           Positioned(
             bottom: 18,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
+            child: GestureDetector(
+              onTap: () {
+                // Already on home – optionally scroll to top or do nothing
+              },
               child: Container(
-                width: 56,
-                height: 56,
+                padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
-                child: const Icon(Icons.home, color: Colors.white, size: 30),
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black,
+                  ),
+                  child: const Icon(Icons.home, color: Colors.white, size: 30),
+                ),
               ),
             ),
           ),
 
           // Right
-          Positioned(right: 60, child: _navIcon(Icons.person)),
+          Positioned(
+            right: 60,
+            child: _navIcon(
+              Icons.person,
+              onTap: () {
+                // Navigate to profile screen later
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _navIcon(IconData icon) {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
+  Widget _navIcon(IconData icon, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+        ),
+        child: Icon(icon, color: Colors.black),
       ),
-      child: Icon(icon, color: Colors.black),
     );
   }
 }
