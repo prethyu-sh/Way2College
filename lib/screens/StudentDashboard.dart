@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/StudentLostItems.dart';
 import 'package:bus_tracker/screens/StudentMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -147,25 +148,35 @@ class StudentDashboard extends StatelessWidget {
             // REPORT LOST ITEM
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Row(
-                  children: const [
-                    SizedBox(width: 16),
-                    Icon(Icons.report_problem, color: Colors.blue),
-                    SizedBox(width: 12),
-                    Text(
-                      "Report Lost Item",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => StudentLostItemsPage(userId: userId),
                     ),
-                  ],
+                  );
+                },
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    children: const [
+                      SizedBox(width: 16),
+                      Icon(Icons.report_problem, color: Colors.blue),
+                      SizedBox(width: 12),
+                      Text(
+                        "Report Lost Item",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

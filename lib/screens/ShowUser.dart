@@ -26,7 +26,7 @@ class _ShowUsersScreenState extends State<ShowUsersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("All Users", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF154C79),
+        backgroundColor: const Color(0xFF095C42),
       ),
       body: Column(
         children: [
@@ -128,9 +128,27 @@ class _ShowUsersScreenState extends State<ShowUsersScreen> {
                           color: isActive ? Colors.green : Colors.red,
                         ),
                         title: Text(user['Name']),
-                        subtitle: Text(
-                          "ID: ${user['UserId']} • Role: ${user['Role']}",
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "ID: ${user['UserId']}",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Role: ${user['Role']}",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
                         ),
+
                         trailing: TextButton(
                           onPressed: () {
                             _confirmToggleUserStatus(context, user, isActive);

@@ -11,7 +11,7 @@ class UserManagementScreen extends StatelessWidget {
       backgroundColor: Colors.white,
 
       appBar: AppBar(
-        backgroundColor: const Color(0xFF154C79),
+        backgroundColor: const Color(0xFF095C42),
         elevation: 0,
         title: const Text(
           "User Management",
@@ -62,7 +62,7 @@ class UserManagementScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF154C79),
+          color: const Color(0xFF095C42),
           borderRadius: BorderRadius.circular(24),
         ),
         child: child,

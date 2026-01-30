@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/AttendantLostItems.dart';
 import 'package:bus_tracker/screens/AttendantMap.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -93,6 +94,12 @@ class BusAttendantDashboard extends StatelessWidget {
                     color: const Color(0xFF8E8BC7),
                     onTap: () {
                       // lost items page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AttendantLostItems(),
+                        ),
+                      );
                     },
                   ),
                 ],
