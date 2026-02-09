@@ -1,6 +1,7 @@
 import 'package:bus_tracker/screens/SeatLayout.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class StudentMap extends StatelessWidget {
   final String userId;
@@ -45,7 +46,7 @@ class StudentMap extends StatelessWidget {
               ),
             ),
 
-            // BUS STATUS CARD (REAL TIME)
+            // BUS STATUS CARD
             Positioned(top: 90, left: 16, right: 16, child: _busStatusCard()),
 
             // CHECK SEATS BUTTON
@@ -114,6 +115,7 @@ class StudentMap extends StatelessWidget {
           return _statusContainer(
             title: "Bus not assigned",
             subtitle: "",
+            footer: "",
             color: Colors.grey,
           );
         }
@@ -128,23 +130,32 @@ class StudentMap extends StatelessWidget {
               return _statusContainer(
                 title: "Bus not found",
                 subtitle: "",
+                footer: "",
                 color: Colors.grey,
               );
             }
 
             final busData = busSnap.data!.data() as Map<String, dynamic>;
+
             final status = busData['status'] ?? "ON_THE_WAY";
             final delayMinutes = busData['delayMinutes'];
             final delayReason = busData['delayReason'];
+
+            final Timestamp? ts = busData['statusUpdatedAt'];
+            final DateTime? lastUpdated = ts?.toDate();
+            final String footerText = lastUpdated != null
+                ? "Last updated: ${_formatTime(lastUpdated)}"
+                : "";
 
             switch (status) {
               case "DELAYED":
                 return _statusContainer(
                   title:
-                      "Bus Delayed${delayReason != null ? " Due to $delayReason" : ""}",
+                      "Bus Delayed${delayReason != null ? " due to $delayReason" : ""}",
                   subtitle: delayMinutes != null
                       ? "$delayMinutes minutes late"
                       : "",
+                  footer: footerText,
                   color: Colors.orange.shade100,
                   titleColor: Colors.red,
                 );
@@ -153,6 +164,7 @@ class StudentMap extends StatelessWidget {
                 return _statusContainer(
                   title: "Bus Breakdown",
                   subtitle: "Please wait for updates",
+                  footer: footerText,
                   color: Colors.red.shade100,
                   titleColor: Colors.red,
                 );
@@ -161,6 +173,7 @@ class StudentMap extends StatelessWidget {
                 return _statusContainer(
                   title: "Bus On the Way",
                   subtitle: "Arriving as scheduled",
+                  footer: footerText,
                   color: Colors.green.shade100,
                   titleColor: Colors.green.shade800,
                 );
@@ -169,6 +182,12 @@ class StudentMap extends StatelessWidget {
         );
       },
     );
+  }
+
+  // ================= HELPERS =================
+
+  String _formatTime(DateTime time) {
+    return DateFormat('hh:mm a').format(time);
   }
 
   Future<void> _openSeatLayout(BuildContext context) async {
@@ -189,19 +208,17 @@ class StudentMap extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SeatLayoutPage(
-          busId: busId,
-          readOnly: true, // STUDENT MODE
-        ),
+        builder: (_) => SeatLayoutPage(busId: busId, readOnly: true),
       ),
     );
   }
 
-  // ================= UI HELPERS =================
+  // ================= UI =================
 
   Widget _statusContainer({
     required String title,
     required String subtitle,
+    required String footer,
     required Color color,
     Color titleColor = Colors.black,
   }) {
@@ -228,6 +245,13 @@ class StudentMap extends StatelessWidget {
             Text(
               subtitle,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ],
+          if (footer.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              footer,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
             ),
           ],
         ],
