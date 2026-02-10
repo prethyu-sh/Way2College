@@ -1,5 +1,6 @@
 import 'package:bus_tracker/screens/AssignBus.dart';
 import 'package:bus_tracker/screens/AssignRole.dart';
+import 'package:bus_tracker/screens/ProfilePage.dart';
 import 'package:bus_tracker/screens/SecretaryMap.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserManagement.dart';
@@ -203,13 +204,16 @@ class BusSecretaryDashboard extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.person),
-                  color: Colors.black,
-                  iconSize: 24,
-                  onPressed: () {
-                    // Navigate to Profile screen
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProfilePage(userId: userId),
+                      ),
+                    );
                   },
+                  child: const Icon(Icons.person, color: Colors.black),
                 ),
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:bus_tracker/screens/ProfilePage.dart';
 import 'package:bus_tracker/screens/StudentLostItems.dart';
 import 'package:bus_tracker/screens/StudentMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -345,7 +346,20 @@ class StudentDashboard extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(right: 60, child: _navIcon(Icons.person)),
+          Positioned(
+            right: 60,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(userId: userId),
+                  ),
+                );
+              },
+              child: _navIcon(Icons.person),
+            ),
+          ),
         ],
       ),
     );

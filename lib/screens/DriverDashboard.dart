@@ -1,4 +1,5 @@
 import 'package:bus_tracker/screens/DriverMap.dart';
+import 'package:bus_tracker/screens/ProfilePage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
@@ -321,7 +322,20 @@ class DriverDashboard extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(right: 60, child: _navIcon(Icons.person)),
+          Positioned(
+            right: 60,
+            child: _navIcon(
+              Icons.person,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(userId: userId),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

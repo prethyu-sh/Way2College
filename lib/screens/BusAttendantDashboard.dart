@@ -1,5 +1,6 @@
 import 'package:bus_tracker/screens/AttendantLostItems.dart';
 import 'package:bus_tracker/screens/AttendantMap.dart';
+import 'package:bus_tracker/screens/ProfilePage.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -392,7 +393,13 @@ class BusAttendantDashboard extends StatelessWidget {
             child: _navIcon(
               Icons.person,
               onTap: () {
-                // Navigate to profile screen later
+                // Navigate to profile screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(userId: userId),
+                  ),
+                );
               },
             ),
           ),
