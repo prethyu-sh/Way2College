@@ -119,90 +119,123 @@ class _SecretaryMapState extends State<SecretaryMap> {
         final delayMinutes = data['delayMinutes'];
         final delayReason = data['delayReason'];
 
-        Color bgColor;
-        Color textColor;
+        Color statusColor;
 
         switch (status) {
           case "DELAYED":
-            bgColor = Colors.orange.shade100;
-            textColor = Colors.red;
+            statusColor = Colors.orange;
             break;
           case "BREAKDOWN":
-            bgColor = Colors.red.shade100;
-            textColor = Colors.red;
+            statusColor = Colors.red;
             break;
           default:
-            bgColor = Colors.green.shade100;
-            textColor = Colors.green.shade800;
+            statusColor = Colors.green;
         }
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 4,
-                offset: Offset(2, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.directions_bus,
-                    size: 20,
-                    color: Colors.black87,
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      busName,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 6,
+                  offset: Offset(2, 4),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // 🔹 FULL HEIGHT COLOR STRIP (Perfect Curve)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(width: 6, color: statusColor),
+                ),
 
-              const SizedBox(height: 12),
-              Text(
-                _statusLabel(status),
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: textColor,
-                ),
-              ),
-              if (status == "DELAYED" && delayMinutes != null)
+                // 🔹 CONTENT
                 Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    "$delayMinutes min late${delayReason != null ? " • $delayReason" : ""}",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 13),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.directions_bus,
+                            size: 20,
+                            color: Colors.black87,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              busName,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _statusLabel(status),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (status == "DELAYED" && delayMinutes != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            "$delayMinutes min late${delayReason != null ? " • $delayReason" : ""}",
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+
+                      if (status == "BREAKDOWN")
+                        const Padding(
+                          padding: EdgeInsets.only(top: 6),
+                          child: Text(
+                            "Please wait for updates",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              if (status == "BREAKDOWN")
-                const Padding(
-                  padding: EdgeInsets.only(top: 6),
-                  child: Text(
-                    "Please wait for updates",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
       },

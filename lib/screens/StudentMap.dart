@@ -108,6 +108,10 @@ class StudentMap extends StatelessWidget {
           return const SizedBox();
         }
 
+        if (!userSnap.hasData || userSnap.data?.data() == null) {
+          return const SizedBox();
+        }
+
         final userData = userSnap.data!.data() as Map<String, dynamic>;
         final busId = userData['AssignedBusId'];
 
@@ -126,6 +130,15 @@ class StudentMap extends StatelessWidget {
               .doc(busId)
               .snapshots(),
           builder: (context, busSnap) {
+            if (!busSnap.hasData || busSnap.data?.data() == null) {
+              return _statusContainer(
+                title: "Bus not found",
+                subtitle: "",
+                footer: "",
+                color: Colors.white,
+                titleColor: Colors.grey,
+              );
+            }
             if (!busSnap.hasData || !busSnap.data!.exists) {
               return _statusContainer(
                 title: "Bus not found",
@@ -156,8 +169,8 @@ class StudentMap extends StatelessWidget {
                       ? "$delayMinutes minutes late"
                       : "",
                   footer: footerText,
-                  color: Colors.orange.shade100,
-                  titleColor: Colors.red,
+                  color: Colors.white,
+                  titleColor: Colors.orange,
                 );
 
               case "BREAKDOWN":
@@ -165,7 +178,7 @@ class StudentMap extends StatelessWidget {
                   title: "Bus Breakdown",
                   subtitle: "Please wait for updates",
                   footer: footerText,
-                  color: Colors.red.shade100,
+                  color: Colors.white,
                   titleColor: Colors.red,
                 );
 
@@ -174,8 +187,8 @@ class StudentMap extends StatelessWidget {
                   title: "Bus On the Way",
                   subtitle: "Arriving as scheduled",
                   footer: footerText,
-                  color: Colors.green.shade100,
-                  titleColor: Colors.green.shade800,
+                  color: Colors.white,
+                  titleColor: Colors.green,
                 );
             }
           },
@@ -223,37 +236,88 @@ class StudentMap extends StatelessWidget {
     Color titleColor = Colors.black,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
+        ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
+          // 🔹 Left Color Indicator Bar
+          Container(
+            width: 6,
+            decoration: BoxDecoration(
               color: titleColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+              ),
             ),
           ),
-          if (subtitle.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center, // ✅ CENTERED
+                children: [
+                  // 🔹 Status Row (Dot + Title)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center, // ✅ CENTERED
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: titleColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center, // ✅ CENTER TEXT
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: titleColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      textAlign: TextAlign.center, // ✅ CENTER
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+
+                  if (footer.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      footer,
+                      textAlign: TextAlign.center, // ✅ CENTER
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ],
-          if (footer.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              footer,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-            ),
-          ],
+          ),
         ],
       ),
     );

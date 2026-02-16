@@ -53,24 +53,7 @@ class AttendantMap extends StatelessWidget {
               child: Center(
                 child: GestureDetector(
                   onTap: () => _showStatusPicker(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 4,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: _busStatusText(),
-                  ),
+                  child: _busStatusText(),
                 ),
               ),
             ),
@@ -152,13 +135,47 @@ class AttendantMap extends StatelessWidget {
 
             final busData = busSnap.data!.data() as Map<String, dynamic>;
             final status = busData['status'] ?? "ON_THE_WAY";
+            final delayMinutes = busData['delayMinutes'];
 
-            return Text(
-              _statusLabel(status),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.deepOrange,
+            final color = _getStatusColor(status);
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white, //  solid white background
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: color, width: 1.5),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    status == "DELAYED" && delayMinutes != null
+                        ? "Delayed • $delayMinutes min"
+                        : _statusLabel(status),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: color,
+                    ),
+                  ),
+                ],
               ),
             );
           },
@@ -318,6 +335,17 @@ class AttendantMap extends StatelessWidget {
         child: Icon(icon, color: Colors.black),
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case "DELAYED":
+        return Colors.orange;
+      case "BREAKDOWN":
+        return Colors.red;
+      default:
+        return Colors.green;
+    }
   }
 
   Future<void> _openSeatLayout(BuildContext context) async {
