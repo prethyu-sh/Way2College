@@ -1,6 +1,7 @@
 import 'package:bus_tracker/screens/SeatLayout.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:bus_tracker/services/notification_service.dart';
 
 class AttendantMap extends StatelessWidget {
   final String userId;
@@ -241,6 +242,28 @@ class AttendantMap extends StatelessWidget {
       'statusUpdatedBy': userId,
       'statusUpdatedAt': FieldValue.serverTimestamp(),
     });
+    // 🔔 Notify all students assigned to this bus
+    final students = await FirebaseFirestore.instance
+        .collection('Users')
+        .where('AssignedBusId', isEqualTo: busId)
+        .where('Role', isEqualTo: 'Student')
+        .get();
+    final busDoc = await FirebaseFirestore.instance
+        .collection('Buses')
+        .doc(busId)
+        .get();
+
+    final busName = busDoc.data()?['busName'] ?? "Your Bus";
+
+    for (var doc in students.docs) {
+      await NotificationService.sendNotification(
+        toUserId: doc.id,
+        title: "$busName Status Updated",
+        message: "Status changed to ${_statusLabel(status)}",
+        busId: busId,
+        busName: busName,
+      );
+    }
   }
 
   // ---------------- DELAY POPUP ----------------
@@ -298,6 +321,29 @@ class AttendantMap extends StatelessWidget {
                     'statusUpdatedBy': userId,
                     'statusUpdatedAt': FieldValue.serverTimestamp(),
                   });
+              // 🔔 Notify students about delay
+              final students = await FirebaseFirestore.instance
+                  .collection('Users')
+                  .where('AssignedBusId', isEqualTo: busId)
+                  .where('Role', isEqualTo: 'Student')
+                  .get();
+              final busDoc = await FirebaseFirestore.instance
+                  .collection('Buses')
+                  .doc(busId)
+                  .get();
+
+              final busName = busDoc.data()?['busName'] ?? "Your Bus";
+
+              for (var doc in students.docs) {
+                await NotificationService.sendNotification(
+                  toUserId: doc.id,
+                  title: "$busName Delayed",
+                  message:
+                      "Delayed by ${delayController.text} min • ${reasonController.text}",
+                  busId: busId,
+                  busName: busName,
+                );
+              }
 
               Navigator.pop(context);
             },

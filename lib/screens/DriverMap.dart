@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:bus_tracker/services/notification_service.dart';
 
 class DriverMap extends StatelessWidget {
   final String userId;
@@ -211,6 +212,29 @@ class DriverMap extends StatelessWidget {
       'statusUpdatedBy': userId,
       'statusUpdatedAt': FieldValue.serverTimestamp(),
     });
+
+    // 🔔 Send notification to all students of this bus
+    final students = await FirebaseFirestore.instance
+        .collection('Users')
+        .where('Role', isEqualTo: 'Student')
+        .where('AssignedBusId', isEqualTo: busId)
+        .get();
+
+    final busDoc = await FirebaseFirestore.instance
+        .collection('Buses')
+        .doc(busId)
+        .get();
+
+    final busName = busDoc.data()?['busName'] ?? "Your Bus";
+    for (var student in students.docs) {
+      await NotificationService.sendNotification(
+        toUserId: student.id,
+        title: "$busName Status Updated",
+        message: "Status changed to ${_statusLabel(status)}",
+        busId: busId,
+        busName: busName,
+      );
+    }
   }
 
   // ---------------- DELAY POPUP ----------------
@@ -268,6 +292,30 @@ class DriverMap extends StatelessWidget {
                     'statusUpdatedBy': userId,
                     'statusUpdatedAt': FieldValue.serverTimestamp(),
                   });
+
+              // 🔔 Notify students about delay
+              final students = await FirebaseFirestore.instance
+                  .collection('Users')
+                  .where('Role', isEqualTo: 'Student')
+                  .where('AssignedBusId', isEqualTo: busId)
+                  .get();
+
+              final busDoc = await FirebaseFirestore.instance
+                  .collection('Buses')
+                  .doc(busId)
+                  .get();
+
+              final busName = busDoc.data()?['busName'] ?? "Your Bus";
+
+              for (var student in students.docs) {
+                await NotificationService.sendNotification(
+                  toUserId: student.id,
+                  title: "$busName Delayed",
+                  message: "Delayed by ${delayController.text} minutes",
+                  busId: busId,
+                  busName: busName,
+                );
+              }
 
               Navigator.pop(context);
             },
