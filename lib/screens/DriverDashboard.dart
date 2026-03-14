@@ -1,9 +1,11 @@
 import 'package:bus_tracker/screens/DriverMap.dart';
 import 'package:bus_tracker/screens/ProfilePage.dart';
+import 'package:bus_tracker/screens/DriverEmergencyList.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bus_tracker/screens/UserLogin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bus_tracker/widgets/NotificationBell.dart';
 
 class DriverDashboard extends StatelessWidget {
   final String userId;
@@ -26,7 +28,7 @@ class DriverDashboard extends StatelessWidget {
                   _topChip("Way2College"),
                   Row(
                     children: [
-                      _iconBox(Icons.notifications_none),
+                      NotificationBell(userId: userId),
                       const SizedBox(width: 12),
                       PopupMenuButton<String>(
                         onSelected: (value) {
@@ -72,10 +74,15 @@ class DriverDashboard extends StatelessWidget {
                   _actionCard(
                     icon: Icons.warning,
                     text: "Emergency",
-                    color: const Color(0xFF9E9E9E),
-                    iconColor: Colors.red,
+                    color: const Color(0xFF8E8BC7),
+                    // iconColor: Colors.red,
                     onTap: () {
-                      // Emergency logic
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DriverEmergencyList(),
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
@@ -153,6 +160,7 @@ class DriverDashboard extends StatelessWidget {
                 return _busInfoUI(
                   busName: busData['busName']?.toString() ?? "Unknown Bus",
                   routeName: routeData['Name']?.toString() ?? "Unknown Route",
+                  stops: routeData['Stops'] as List<dynamic>?,
                 );
               },
             );
@@ -162,7 +170,11 @@ class DriverDashboard extends StatelessWidget {
     );
   }
 
-  Widget _busInfoUI({required String busName, required String routeName}) {
+  Widget _busInfoUI({
+    required String busName,
+    required String routeName,
+    List<dynamic>? stops,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -200,6 +212,57 @@ class DriverDashboard extends StatelessWidget {
             routeName,
             style: const TextStyle(color: Colors.white, fontSize: 14),
           ),
+
+          if (stops != null && stops.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              "Stops List",
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black12,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: stops.map((stopObj) {
+                  final stopName = stopObj['name'] as String;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4, right: 10),
+                          child: Icon(
+                            Icons.circle,
+                            size: 10,
+                            color: Colors.orange,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            stopName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         ],
       ),
     );
