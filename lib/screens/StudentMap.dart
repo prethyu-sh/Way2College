@@ -23,6 +23,9 @@ class _StudentMapState extends State<StudentMap> {
   LatLng? _currentPosition;
   GoogleMapController? _mapController;
   BitmapDescriptor? _busIcon;
+  BitmapDescriptor? _stopIcon;
+  BitmapDescriptor? _intermediateStopIcon;
+  Set<Marker> _stopMarkers = {};
 
   String? _assignedStopName;
   List<LatLng> _polylineCoordinates = [];
@@ -41,6 +44,8 @@ class _StudentMapState extends State<StudentMap> {
   Future<void> _loadCustomMarker() async {
     try {
       _busIcon = await getMarkerIconFromData(Icons.directions_bus, Colors.blue);
+      _stopIcon = await getMarkerIconFromData(Icons.location_on, Colors.red, size: 120);
+      _intermediateStopIcon = await getMarkerIconFromData(Icons.location_on, Colors.orange, size: 80);
       if (mounted) setState(() {});
     } catch (e) {
       print("Error loading custom marker: $e");
@@ -71,6 +76,7 @@ class _StudentMapState extends State<StudentMap> {
                   _polylineCoordinates.clear();
                   _distance = "";
                   _duration = "";
+                  _stopMarkers.clear();
                 });
               }
               _busSubscription?.cancel();
@@ -109,7 +115,7 @@ class _StudentMapState extends State<StudentMap> {
                                           .difference(_lastFetchTime!)
                                           .inSeconds >
                                       15) {
-                                _resolveStopAndFetchETA(
+                                _resolveStopsAndFetchETA(
                                   _currentPosition!,
                                   _assignedStopName!,
                                   busData['routeId'],
@@ -126,44 +132,86 @@ class _StudentMapState extends State<StudentMap> {
         });
   }
 
-  Future<void> _resolveStopAndFetchETA(
+  Future<void> _resolveStopsAndFetchETA(
     LatLng origin,
-    String stopName,
+    String targetStopName,
     String? routeId,
   ) async {
     if (routeId == null) return;
 
-    dynamic destinationPoint = stopName;
+    List<LatLng> waypoints = [];
+    LatLng? destinationPoint;
+    Set<Marker> newMarkers = {};
 
     try {
       final routeDoc = await FirebaseFirestore.instance
           .collection('Routes')
           .doc(routeId)
           .get();
+
       if (routeDoc.exists) {
         final stops = routeDoc.data()?['Stops'] as List<dynamic>?;
         if (stops != null) {
-          try {
-            final targetStop = stops.firstWhere((s) => s['name'] == stopName);
-            if (targetStop['lat'] != null && targetStop['lng'] != null) {
-              destinationPoint = LatLng(
-                (targetStop['lat'] as num).toDouble(),
-                (targetStop['lng'] as num).toDouble(),
-              );
+          bool foundTarget = false;
+          int targetIndex = -1;
+
+          // 1. Find the target stop's index
+          for (int i = 0; i < stops.length; i++) {
+            if (stops[i]['name'] == targetStopName) {
+              targetIndex = i;
+              break;
             }
-          } catch (_) {
-            // Stop not found, fallback to string
+          }
+
+          // 2. Process all stops in order
+          for (int i = 0; i < stops.length; i++) {
+            final stop = stops[i];
+            if (stop['lat'] != null && stop['lng'] != null) {
+              final pos = LatLng(
+                (stop['lat'] as num).toDouble(),
+                (stop['lng'] as num).toDouble(),
+              );
+
+              final isTarget = stop['name'] == targetStopName;
+              
+              // Add to global markers set
+              newMarkers.add(
+                Marker(
+                  markerId: MarkerId('stop_${i}_${stop['name']}'),
+                  position: pos,
+                  infoWindow: InfoWindow(title: stop['name']),
+                  icon: isTarget 
+                      ? (_stopIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+                      : (_intermediateStopIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)),
+                ),
+              );
+
+              if (isTarget) {
+                destinationPoint = pos;
+                foundTarget = true;
+                if (mounted) setState(() {});
+              } else if (!foundTarget && targetIndex != -1) {
+                // If it's a stop BEFORE the target, it might be a waypoint
+                // Currently only adding waypoints that are ahead of the bus requires complex distance check.
+                // For simplicity, we add all stops between bus and target as waypoints.
+                // OSRM/GH handles the route sequence.
+                waypoints.add(pos);
+              }
+            }
           }
         }
       }
     } catch (e) {
-      print("Error resolving exact stop location: $e");
+      print("Error resolving stops for student: $e");
     }
 
-    _fetchETA(origin, destinationPoint);
+    if (destinationPoint != null) {
+      if (mounted) setState(() => _stopMarkers = newMarkers);
+      _fetchETA(origin, destinationPoint, waypoints: waypoints);
+    }
   }
 
-  Future<void> _fetchETA(LatLng origin, dynamic destination) async {
+  Future<void> _fetchETA(LatLng origin, dynamic destination, {List<LatLng>? waypoints}) async {
     if (_isFetchingRoute) return;
     setState(() => _isFetchingRoute = true);
 
@@ -171,6 +219,7 @@ class _StudentMapState extends State<StudentMap> {
       final dirData = await DirectionsService.getDirections(
         origin: origin,
         destination: destination,
+        waypoints: waypoints,
       );
 
       if (dirData != null && mounted) {
@@ -225,8 +274,9 @@ class _StudentMapState extends State<StudentMap> {
                           BitmapDescriptor.defaultMarkerWithHue(
                             BitmapDescriptor.hueBlue,
                           ),
-                    )
-                  else
+                    ),
+                  ..._stopMarkers,
+                  if (_currentPosition == null && _stopMarkers.isEmpty)
                     Marker(
                       markerId: const MarkerId('schoolPosition'),
                       position: const LatLng(9.847694, 76.942194),
@@ -246,57 +296,6 @@ class _StudentMapState extends State<StudentMap> {
                 },
               ),
             ),
-
-            // ETA INFO CARD (Top right)
-            if (_assignedStopName != null &&
-                _distance.isNotEmpty &&
-                _duration.isNotEmpty)
-              Positioned(
-                top: 80,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black26, blurRadius: 4),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "To: $_assignedStopName",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _distance,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _duration,
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
 
             // TOP BAR
             Positioned(
@@ -322,7 +321,12 @@ class _StudentMapState extends State<StudentMap> {
             ),
 
             // BUS STATUS CARD
-            Positioned(top: 90, left: 16, right: 16, child: _busStatusCard()),
+            Positioned(
+              top: 90, 
+              left: 16, 
+              right: 16, 
+              child: _busStatusCard(),
+            ),
 
             // CHECK SEATS BUTTON
             Positioned(
@@ -434,6 +438,12 @@ class _StudentMapState extends State<StudentMap> {
             final String footerText = lastUpdated != null
                 ? "Last updated: ${_formatTime(lastUpdated)}"
                 : "";
+            
+            // ETA Logic
+            String? etaInfo;
+            if (_distance.isNotEmpty && _duration.isNotEmpty) {
+              etaInfo = "Arriving in $_duration (${_distance})";
+            }
 
             switch (status) {
               case "DELAYED":
@@ -446,6 +456,7 @@ class _StudentMapState extends State<StudentMap> {
                   footer: footerText,
                   color: Colors.white,
                   titleColor: Colors.orange,
+                  etaText: etaInfo,
                 );
 
               case "BREAKDOWN":
@@ -455,6 +466,7 @@ class _StudentMapState extends State<StudentMap> {
                   footer: footerText,
                   color: Colors.white,
                   titleColor: Colors.red,
+                  etaText: etaInfo,
                 );
 
               default:
@@ -464,6 +476,7 @@ class _StudentMapState extends State<StudentMap> {
                   footer: footerText,
                   color: Colors.white,
                   titleColor: Colors.green,
+                  etaText: etaInfo,
                 );
             }
           },
@@ -509,6 +522,7 @@ class _StudentMapState extends State<StudentMap> {
     required String footer,
     required Color color,
     Color titleColor = Colors.black,
+    String? etaText,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -523,6 +537,7 @@ class _StudentMapState extends State<StudentMap> {
           // 🔹 Left Color Indicator Bar
           Container(
             width: 6,
+            height: (etaText != null) ? 140 : 100, // Dynamic height
             decoration: BoxDecoration(
               color: titleColor,
               borderRadius: const BorderRadius.only(
@@ -534,7 +549,7 @@ class _StudentMapState extends State<StudentMap> {
 
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center, // ✅ CENTERED
                 children: [
@@ -566,7 +581,7 @@ class _StudentMapState extends State<StudentMap> {
                   ),
 
                   if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       subtitle,
                       textAlign: TextAlign.center, // ✅ CENTER
@@ -578,13 +593,32 @@ class _StudentMapState extends State<StudentMap> {
                     ),
                   ],
 
+                  if (etaText != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        etaText,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+
                   if (footer.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
                       footer,
                       textAlign: TextAlign.center, // ✅ CENTER
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.grey.shade600,
                       ),
                     ),

@@ -30,6 +30,11 @@ class _DriverMapState extends State<DriverMap> {
   String _duration = "";
   bool _isFetchingRoute = false;
   bool _isTripStarted = false;
+  DateTime? _lastRouteFetchTime;
+  String? _assignedRouteId;
+  Set<Marker> _markers = {};
+  BitmapDescriptor? _stopIcon;
+  BitmapDescriptor? _destinationIcon;
 
   @override
   void initState() {
@@ -41,6 +46,8 @@ class _DriverMapState extends State<DriverMap> {
   Future<void> _loadCustomMarker() async {
     try {
       _busIcon = await getMarkerIconFromData(Icons.directions_bus, Colors.blue);
+      _stopIcon = await getMarkerIconFromData(Icons.location_on, Colors.orange, size: 100);
+      _destinationIcon = await getMarkerIconFromData(Icons.location_on, Colors.red, size: 120);
       if (mounted) setState(() {});
     } catch (e) {
       print("Error loading custom marker: $e");
@@ -59,8 +66,9 @@ class _DriverMapState extends State<DriverMap> {
             if (mounted) {
               setState(() {
                 _busId = data['AssignedBusId'];
+                _assignedRouteId = data['AssignedRouteId'];
               });
-              if (_busId != null && !_isFetchingRoute) {
+              if (_busId != null) {
                 _fetchRoutePath(_busId!);
               }
             }
@@ -137,19 +145,27 @@ class _DriverMapState extends State<DriverMap> {
             }
           }
 
-          // 4. Update Firestore only if trip is started
-          if (_busId != null && _isTripStarted) {
-            FirebaseFirestore.instance.collection('Buses').doc(_busId).update({
-              'latitude': position.latitude,
-              'longitude': position.longitude,
-              'lastLocationUpdate': FieldValue.serverTimestamp(),
-            });
+          if (_busId != null) {
+            // Update Firestore only if trip is started
+            if (_isTripStarted) {
+              FirebaseFirestore.instance.collection('Buses').doc(_busId).update({
+                'latitude': position.latitude,
+                'longitude': position.longitude,
+                'lastLocationUpdate': FieldValue.serverTimestamp(),
+              });
+            }
+
+            // Periodic route update (every 30 seconds)
+            if (_lastRouteFetchTime == null ||
+                DateTime.now().difference(_lastRouteFetchTime!).inSeconds > 30) {
+              _fetchRoutePath(_busId!);
+            }
           }
         });
   }
 
   Future<void> _fetchRoutePath(String busId) async {
-    if (_isFetchingRoute || !_isTripStarted) return;
+    if (_isFetchingRoute) return;
     setState(() => _isFetchingRoute = true);
 
     try {
@@ -157,41 +173,80 @@ class _DriverMapState extends State<DriverMap> {
           .collection('Buses')
           .doc(busId)
           .get();
-      if (!busDoc.exists) return;
-      final routeId = busDoc.data()?['routeId'];
-      if (routeId == null) return;
+      
+      String? routeId;
+      if (busDoc.exists) {
+        routeId = busDoc.data()?['routeId'];
+      }
+      
+      // Fallback to User's assigned route ID if bus doc doesn't have it
+      routeId ??= _assignedRouteId;
+
+      if (routeId == null) {
+        print("DEBUG: No route ID found for bus $busId or driver ${widget.userId}");
+        return;
+      }
 
       final routeDoc = await FirebaseFirestore.instance
           .collection('Routes')
           .doc(routeId)
           .get();
-      if (!routeDoc.exists) return;
+      if (!routeDoc.exists) {
+        print("DEBUG: Route doc $routeId NOT FOUND");
+        return;
+      }
 
       final stops = routeDoc.data()?['Stops'] as List<dynamic>?;
       if (stops == null || stops.isEmpty) return;
 
       List<dynamic> waypoints = [];
       dynamic destination;
+      Set<Marker> stopMarkers = {};
+
+      print("DEBUG: Processing ${stops.length} stops in order: ${stops.map((s) => s['name']).toList()}");
 
       for (int i = 0; i < stops.length; i++) {
         final stop = stops[i];
-        dynamic locationPoint;
+        LatLng? pos;
 
-        // Use exact Map GPS coordinate if the Secretary selected one, else fallback to String query
         if (stop['lat'] != null && stop['lng'] != null) {
-          locationPoint = LatLng(
+          pos = LatLng(
             (stop['lat'] as num).toDouble(),
             (stop['lng'] as num).toDouble(),
           );
-        } else {
-          locationPoint = stop['name'].toString();
         }
 
-        if (i == stops.length - 1) {
-          destination = locationPoint; // Last stop is destination
-        } else {
-          waypoints.add(locationPoint);
+        final isDestination = i == stops.length - 1;
+        
+        if (pos != null) {
+          stopMarkers.add(
+            Marker(
+              markerId: MarkerId('stop_${i}_${stop['name']}'),
+              position: pos,
+              infoWindow: InfoWindow(title: stop['name']),
+              icon: isDestination 
+                  ? (_destinationIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+                  : (_stopIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)),
+            ),
+          );
         }
+
+        if (isDestination) {
+          destination = pos ?? stop['name'].toString(); 
+        } else {
+          waypoints.add(pos ?? stop['name'].toString());
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _markers = stopMarkers;
+        });
+      }
+
+      // If trip hasn't started, we only show markers, no polyline/ETA
+      if (!_isTripStarted) {
+        return;
       }
 
       while (_currentPosition == null) {
@@ -210,10 +265,14 @@ class _DriverMapState extends State<DriverMap> {
           _distance = dirData['distance'];
           _duration = dirData['duration'];
           _polylineCoordinates = dirData['polylineCoordinates'];
+          _lastRouteFetchTime = DateTime.now();
         });
+        print("DEBUG: Route fetched successfully. Polylines: ${_polylineCoordinates.length}");
+      } else {
+        print("DEBUG: DirectionsService returned NULL for routeId: $routeId");
       }
     } catch (e) {
-      print("Error fetching route path: $e");
+      print("DEBUG: Error fetching route path: $e");
     } finally {
       if (mounted) setState(() => _isFetchingRoute = false);
     }
@@ -266,9 +325,10 @@ class _DriverMapState extends State<DriverMap> {
                         BitmapDescriptor.hueRed,
                       ),
                     ),
+                  ..._markers,
                 },
                 polylines: {
-                  if (_polylineCoordinates.isNotEmpty)
+                  if (_isTripStarted && _polylineCoordinates.isNotEmpty)
                     Polyline(
                       polylineId: const PolylineId('route_path'),
                       color: Colors.blueAccent,
