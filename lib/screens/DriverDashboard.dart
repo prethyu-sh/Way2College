@@ -17,169 +17,241 @@ class DriverDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFEEEAEA),
       body: SafeArea(
-        child: Column(
-          children: [
-            // TOP BAR
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _topChip("Way2College"),
-                  Row(
-                    children: [
-                      NotificationBell(userId: userId),
-                      const SizedBox(width: 12),
-                      PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'logout') {
-                            _showLogoutDialog(context);
-                          }
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(
-                            value: 'logout',
-                            child: Row(
-                              children: [
-                                Icon(Icons.logout, color: Colors.red),
-                                SizedBox(width: 10),
-                                Text("Logout"),
-                              ],
-                            ),
-                          ),
-                        ],
-                        child: _iconBox(Icons.menu),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // ASSIGNED BUS CARD (FROM FIRESTORE)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _assignedBusCard(),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ACTION CARDS
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  _actionCard(
-                    icon: Icons.warning,
-                    text: "Emergency",
-                    color: const Color(0xFF8E8BC7),
-                    // iconColor: Colors.red,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DriverEmergencyList(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _actionCard(
-                    icon: Icons.map,
-                    text: "Route Details",
-                    color: const Color(0xFF8E8BC7),
-                    onTap: () {
-                      // Route details
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _actionCard(
-                    icon: Icons.report_problem,
-                    text: "Report Issue",
-                    color: const Color(0xFF8E8BC7),
-                    onTap: () {
-                      // Report issue
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-
-      // BOTTOM NAVIGATION
-      bottomNavigationBar: _bottomNav(context),
-    );
-  }
-
-  // ---------------- FIRESTORE BUS CARD ----------------
-
-  Widget _assignedBusCard() {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('Users')
-          .doc(userId)
-          .snapshots(),
-      builder: (context, userSnap) {
-        if (!userSnap.hasData) {
-          return const CircularProgressIndicator();
-        }
-
-        final userData = userSnap.data!.data() as Map<String, dynamic>;
-        final busId = userData['AssignedBusId'];
-        final routeId = userData['AssignedRouteId'];
-
-        if (busId == null || routeId == null) {
-          return _emptyBusCard();
-        }
-
-        return StreamBuilder<DocumentSnapshot>(
+        child: StreamBuilder<DocumentSnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('Buses')
-              .doc(busId)
+              .collection('Users')
+              .doc(userId)
               .snapshots(),
-          builder: (context, busSnap) {
-            if (!busSnap.hasData) return const SizedBox();
+          builder: (context, userSnap) {
+            if (!userSnap.hasData)
+              return const Center(child: CircularProgressIndicator());
 
-            final busData = busSnap.data!.data() as Map<String, dynamic>;
+            final userData = userSnap.data!.data() as Map<String, dynamic>;
+            final busId = userData['AssignedBusId'];
+            final routeId = userData['AssignedRouteId'];
+
+            if (busId == null || routeId == null) {
+              return Column(
+                children: [
+                  _topBar(context),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _emptyBusCard(),
+                  ),
+                ],
+              );
+            }
 
             return StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('Routes')
-                  .doc(routeId)
+                  .collection('Buses')
+                  .doc(busId)
                   .snapshots(),
-              builder: (context, routeSnap) {
-                if (!routeSnap.hasData) return const SizedBox();
+              builder: (context, busSnap) {
+                if (!busSnap.hasData) return const SizedBox();
+                final busData = busSnap.data!.data() as Map<String, dynamic>;
 
-                final routeData =
-                    routeSnap.data!.data() as Map<String, dynamic>;
+                return StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('Routes')
+                      .doc(routeId)
+                      .snapshots(),
+                  builder: (context, routeSnap) {
+                    if (!routeSnap.hasData) return const SizedBox();
+                    final routeData =
+                        routeSnap.data!.data() as Map<String, dynamic>;
+                    final stops = routeData['Stops'] as List<dynamic>?;
 
-                return _busInfoUI(
-                  busName: busData['busName']?.toString() ?? "Unknown Bus",
-                  routeName: routeData['Name']?.toString() ?? "Unknown Route",
-                  stops: routeData['Stops'] as List<dynamic>?,
+                    return Column(
+                      children: [
+                        _topBar(context),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _busInfoUI(
+                            busName:
+                                busData['busName']?.toString() ?? "Unknown Bus",
+                            routeName:
+                                routeData['Name']?.toString() ??
+                                "Unknown Route",
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            children: [
+                              _actionCard(
+                                icon: Icons.warning,
+                                text: "Emergency",
+                                color: const Color(0xFF8E8BC7),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const DriverEmergencyList(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _actionCard(
+                                icon: Icons.map,
+                                text: "Route Details",
+                                color: const Color(0xFF8E8BC7),
+                                onTap: () => _showStopsPopUp(context, stops),
+                              ),
+                              const SizedBox(height: 12),
+                              _actionCard(
+                                icon: Icons.report_problem,
+                                text: "Report Issue",
+                                color: const Color(0xFF8E8BC7),
+                                onTap: () {
+                                  // Report issue
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
             );
           },
+        ),
+      ),
+      bottomNavigationBar: _bottomNav(context),
+    );
+  }
+
+  Widget _topBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _topChip("Way2College"),
+          Row(
+            children: [
+              NotificationBell(userId: userId),
+              const SizedBox(width: 12),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'logout') {
+                    _showLogoutDialog(context);
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.red),
+                        SizedBox(width: 10),
+                        Text("Logout"),
+                      ],
+                    ),
+                  ),
+                ],
+                child: _iconBox(Icons.menu),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStopsPopUp(BuildContext context, List<dynamic>? stops) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.map, color: Color(0xFF095C42)),
+              SizedBox(width: 10),
+              Text("Route Stops"),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: stops == null || stops.isEmpty
+                ? const Text("No stops assigned to this route.")
+                : ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: stops.length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final stopName = stops[index]['name'] as String;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF095C42),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  "${index + 1}",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                stopName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _busInfoUI({
-    required String busName,
-    required String routeName,
-    List<dynamic>? stops,
-  }) {
+  Widget _busInfoUI({required String busName, required String routeName}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF095C42),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,81 +260,37 @@ class DriverDashboard extends StatelessWidget {
             children: [
               const Icon(Icons.directions_bus, color: Colors.orange, size: 32),
               const SizedBox(width: 12),
-              Text(
-                busName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+              Expanded(
+                child: Text(
+                  busName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 16),
+          const Text(
+            "ACTIVE ROUTE",
+            style: TextStyle(
+              color: Colors.white60,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
             ),
-            child: const Text("Route", style: TextStyle(color: Colors.white)),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             routeName,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-
-          if (stops != null && stops.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Text(
-              "Stops List",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.black12,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: stops.map((stopObj) {
-                  final stopName = stopObj['name'] as String;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 4, right: 10),
-                          child: Icon(
-                            Icons.circle,
-                            size: 10,
-                            color: Colors.orange,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            stopName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
         ],
       ),
     );

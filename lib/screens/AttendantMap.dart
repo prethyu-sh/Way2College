@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bus_tracker/services/notification_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:bus_tracker/utils/marker_helper.dart';
+import 'package:bus_tracker/services/directions_service.dart';
 
 class AttendantMap extends StatefulWidget {
   final String userId;
@@ -22,6 +23,15 @@ class _AttendantMapState extends State<AttendantMap> {
   LatLng? _currentPosition;
   GoogleMapController? _mapController;
   BitmapDescriptor? _busIcon;
+  
+  List<LatLng> _polylineCoordinates = [];
+  String _distance = "";
+  String _duration = "";
+  bool _isFetchingRoute = false;
+  DateTime? _lastRouteFetchTime;
+  Set<Marker> _markers = {};
+  BitmapDescriptor? _stopIcon;
+  BitmapDescriptor? _destinationIcon;
 
   @override
   void initState() {
@@ -33,6 +43,8 @@ class _AttendantMapState extends State<AttendantMap> {
   Future<void> _loadCustomMarker() async {
     try {
       _busIcon = await getMarkerIconFromData(Icons.directions_bus, Colors.blue);
+      _stopIcon = await getMarkerIconFromData(Icons.location_on, Colors.orange, size: 100);
+      _destinationIcon = await getMarkerIconFromData(Icons.location_on, Colors.red, size: 120);
       if (mounted) setState(() {});
     } catch (e) {
       print("Error loading custom marker: $e");
@@ -82,6 +94,16 @@ class _AttendantMapState extends State<AttendantMap> {
                                 ),
                               );
                             }
+
+                            // Periodic route update (every 30 seconds)
+                            if (_busId != null &&
+                                (_lastRouteFetchTime == null ||
+                                    DateTime.now()
+                                            .difference(_lastRouteFetchTime!)
+                                            .inSeconds >
+                                        30)) {
+                              _fetchRoutePath(_busId!);
+                            }
                           }
                         }
                       }
@@ -90,6 +112,97 @@ class _AttendantMapState extends State<AttendantMap> {
             }
           }
         });
+  }
+
+  Future<void> _fetchRoutePath(String busId) async {
+    if (_isFetchingRoute) return;
+    setState(() => _isFetchingRoute = true);
+
+    try {
+      final busDoc = await FirebaseFirestore.instance
+          .collection('Buses')
+          .doc(busId)
+          .get();
+      if (!busDoc.exists) return;
+      final routeId = busDoc.data()?['routeId'];
+      if (routeId == null) return;
+
+      final routeDoc = await FirebaseFirestore.instance
+          .collection('Routes')
+          .doc(routeId)
+          .get();
+      if (!routeDoc.exists) return;
+
+      final stops = routeDoc.data()?['Stops'] as List<dynamic>?;
+      if (stops == null || stops.isEmpty) return;
+
+      List<dynamic> waypoints = [];
+      dynamic destination;
+      Set<Marker> stopMarkers = {};
+
+      for (int i = 0; i < stops.length; i++) {
+        final stop = stops[i];
+        LatLng? pos;
+
+        if (stop['lat'] != null && stop['lng'] != null) {
+          pos = LatLng(
+            (stop['lat'] as num).toDouble(),
+            (stop['lng'] as num).toDouble(),
+          );
+        }
+
+        final isDestination = i == stops.length - 1;
+
+        if (pos != null) {
+          stopMarkers.add(
+            Marker(
+              markerId: MarkerId('stop_${i}_${stop['name']}'),
+              position: pos,
+              infoWindow: InfoWindow(title: stop['name']),
+              icon: isDestination
+                  ? (_destinationIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed))
+                  : (_stopIcon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange)),
+            ),
+          );
+        }
+
+        if (isDestination) {
+          destination = pos ?? stop['name'].toString();
+        } else {
+          waypoints.add(pos ?? stop['name'].toString());
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _markers = stopMarkers;
+        });
+      }
+
+      while (_currentPosition == null) {
+        await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
+      }
+
+      final dirData = await DirectionsService.getDirections(
+        origin: _currentPosition!,
+        destination: destination,
+        waypoints: waypoints,
+      );
+
+      if (dirData != null && mounted) {
+        setState(() {
+          _distance = dirData['distance'];
+          _duration = dirData['duration'];
+          _polylineCoordinates = dirData['polylineCoordinates'];
+          _lastRouteFetchTime = DateTime.now();
+        });
+      }
+    } catch (e) {
+      print("Error fetching route path: $e");
+    } finally {
+      if (mounted) setState(() => _isFetchingRoute = false);
+    }
   }
 
   @override
@@ -139,9 +252,59 @@ class _AttendantMapState extends State<AttendantMap> {
                         BitmapDescriptor.hueRed,
                       ),
                     ),
+                  ..._markers,
+                },
+                polylines: {
+                  if (_polylineCoordinates.isNotEmpty)
+                    Polyline(
+                      polylineId: const PolylineId('route_path'),
+                      color: Colors.blueAccent,
+                      width: 5,
+                      points: _polylineCoordinates,
+                    ),
                 },
               ),
             ),
+
+            // ETA INFO CARD (Top right)
+            if (_distance.isNotEmpty && _duration.isNotEmpty)
+              Positioned(
+                top: 80,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black26, blurRadius: 4),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _distance,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _duration,
+                        style: const TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             // TOP BAR
             Positioned(
