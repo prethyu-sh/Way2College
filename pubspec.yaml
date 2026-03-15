@@ -1,0 +1,50 @@
+name: bus_tracker
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.0.0
+  firebase_core: ^3.6.0
+  cloud_firestore: ^5.4.0
+  file_selector: ^1.0.3
+  csv: ^5.0.2
+  crypto: ^3.0.3
+  intl: ^0.19.0
+  firebase_messaging: 15.2.10
+  flutter_local_notifications: ^17.0.0
+  image_picker: ^1.1.2
+  http: ^1.2.0
+  shared_preferences: ^2.5.4
+  google_maps_flutter: ^2.10.0
+  geolocator: ^14.0.2
+  razorpay_flutter: ^1.4.1
+  pdf: ^3.11.3
+  path_provider: ^2.1.5
+  open_file: ^3.5.11
+  firebase_storage: ^12.4.10
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/image.png"
